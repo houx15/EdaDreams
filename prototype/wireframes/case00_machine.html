@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<title>EDA v4.1 · 网络安全智能分析平台</title>
+<style>
+  :root {
+    --bg: #dfe1e5;
+    --bg-panel: #ecedef;
+    --bg-white: #ffffff;
+    --bg-titlebar: #3a3a3c;
+    --bg-menubar: #f0f0f2;
+    --bg-toolbar: #e6e7ea;
+    --bg-sidebar: #2c3e5a;
+    --bg-sidebar-hover: #34496a;
+    --bg-sidebar-active: #3d5580;
+    --header-bg: #1a2944;
+    --blue: #2968b0;
+    --blue-light: #dce8f5;
+    --blue-dark: #1a3d6e;
+    --text: #1a1a2e;
+    --text-sec: #555a68;
+    --text-light: #888d9a;
+    --text-sidebar: #a0aec0;
+    --text-sidebar-active: #ffffff;
+    --border: #c4c7cc;
+    --border-dark: #a8abb2;
+    --border-panel: #b8bcc4;
+    --green: #2d8a4e;
+    --red: #c0392b;
+    --orange: #c27020;
+    --anno: #d05820;
+    --anno-bg: rgba(208,88,32,0.06);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    width: 100%; height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Microsoft YaHei", "PingFang SC", "Segoe UI", Tahoma, sans-serif;
+    font-size: 12px;
+    line-height: 1.4;
+    overflow: hidden;
+    user-select: none;
+  }
+
+  .app {
+    width: 100vw; height: 100vh;
+    display: grid;
+    grid-template-rows: 28px 24px 32px 1fr 22px;
+    grid-template-columns: 180px 1fr 360px;
+    grid-template-areas:
+      "titlebar titlebar titlebar"
+      "menubar  menubar  menubar"
+      "toolbar  toolbar  toolbar"
+      "sidebar  docarea  inference"
+      "footer   footer   footer";
+  }
+
+  /* ======= TITLE BAR (fake OS window chrome) ======= */
+  .titlebar {
+    grid-area: titlebar;
+    background: var(--bg-titlebar);
+    display: flex;
+    align-items: center;
+    padding: 0 10px;
+    gap: 8px;
+  }
+  .titlebar .dots { display: flex; gap: 6px; }
+  .titlebar .dot {
+    width: 10px; height: 10px; border-radius: 50%;
+  }
+  .titlebar .dot.r { background: #ec6a5e; }
+  .titlebar .dot.y { background: #f4bf4f; }
+  .titlebar .dot.g { background: #61c554; }
+  .titlebar .win-title {
+    flex: 1;
+    text-align: center;
+    font-size: 11px;
+    color: rgba(255,255,255,0.7);
+    letter-spacing: 0.02em;
+  }
+
+  /* ======= MENU BAR ======= */
+  .menubar {
+    grid-area: menubar;
+    background: var(--bg-menubar);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: stretch;
+    padding: 0 6px;
+    font-size: 12px;
+  }
+  .menu-item {
+    padding: 3px 10px;
+    color: var(--text);
+    cursor: default;
+    display: flex;
+    align-items: center;
+  }
+  .menu-item:hover { background: var(--blue); color: #fff; }
+
+  /* ======= TOOLBAR ======= */
+  .toolbar {
+    grid-area: toolbar;
+    background: var(--bg-toolbar);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    padding: 0 8px;
+    gap: 2px;
+  }
+  .tb-btn {
+    padding: 3px 8px;
+    font-size: 11px;
+    color: var(--text-sec);
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 2px;
+    cursor: default;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-family: inherit;
+  }
+  .tb-btn:hover {
+    background: var(--bg-white);
+    border-color: var(--border);
+  }
+  .tb-sep {
+    width: 1px; height: 18px;
+    background: var(--border);
+    margin: 0 4px;
+  }
+  .tb-case {
+    margin-left: auto;
+    font-size: 11px;
+    color: var(--text-sec);
+    display: flex; align-items: center; gap: 6px;
+  }
+  .tb-case strong { color: var(--text); font-weight: 600; }
+  .tb-status {
+    display: inline-block;
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--green);
+  }
+
+  /* ======= LEFT SIDEBAR ======= */
+  .sidebar {
+    grid-area: sidebar;
+    background: var(--bg-sidebar);
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    border-right: 1px solid #1a2a44;
+  }
+  .nav-group {
+    padding: 10px 6px 4px;
+  }
+  .nav-group-title {
+    font-size: 9px;
+    color: rgba(255,255,255,0.3);
+    letter-spacing: 0.18em;
+    padding: 0 8px 6px;
+    text-transform: uppercase;
+  }
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px;
+    border-radius: 3px;
+    color: var(--text-sidebar);
+    font-size: 12px;
+    cursor: default;
+    margin-bottom: 1px;
+  }
+  .nav-item:hover { background: var(--bg-sidebar-hover); }
+  .nav-item.active {
+    background: var(--bg-sidebar-active);
+    color: var(--text-sidebar-active);
+  }
+  .nav-item .ico { width: 16px; text-align: center; font-size: 12px; }
+  .nav-item .badge {
+    margin-left: auto;
+    background: rgba(255,255,255,0.15);
+    color: rgba(255,255,255,0.6);
+    font-size: 9px;
+    padding: 0px 6px;
+    border-radius: 8px;
+  }
+  .nav-item.locked { opacity: 0.3; cursor: not-allowed; }
+  .nav-item.locked .lock { margin-left: auto; font-size: 9px; opacity: 0.5; }
+
+  .nav-divider { border-top: 1px solid rgba(255,255,255,0.08); margin: 6px 10px; }
+
+  /* identity mini-card in sidebar */
+  .id-card {
+    margin: 8px 8px 4px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 4px;
+    padding: 10px;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  .id-avatar {
+    width: 32px; height: 32px;
+    border-radius: 4px;
+    background: linear-gradient(135deg, #2968b0, #4a90d9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+    color: #fff;
+  }
+  .id-info .id-name { color: #fff; font-size: 12px; font-weight: 600; }
+  .id-info .id-role { color: rgba(255,255,255,0.45); font-size: 10px; margin-top: 1px; }
+
+  /* ======= CENTER: DOCUMENT AREA ======= */
+  .docarea {
+    grid-area: docarea;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: var(--bg);
+  }
+
+  .doc-tabs {
+    display: flex;
+    background: var(--bg-panel);
+    border-bottom: 1px solid var(--border);
+    min-height: 28px;
+    align-items: flex-end;
+    padding: 0 4px;
+  }
+  .doc-tab {
+    padding: 5px 14px;
+    font-size: 11px;
+    color: var(--text-sec);
+    border: 1px solid transparent;
+    border-bottom: none;
+    cursor: default;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin-bottom: -1px;
+  }
+  .doc-tab.active {
+    background: var(--bg-white);
+    border-color: var(--border);
+    color: var(--text);
+    font-weight: 500;
+  }
+  .doc-tab .x { color: var(--text-light); font-size: 10px; }
+
+  .doc-viewer {
+    flex: 1;
+    background: var(--bg-white);
+    border: 1px solid var(--border);
+    margin: 4px;
+    padding: 20px 24px;
+    overflow-y: auto;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+  }
+  .doc-meta-row {
+    display: flex; gap: 12px;
+    font-size: 11px; color: var(--text-sec);
+    margin-bottom: 4px;
+  }
+  .doc-title-line {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 12px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+  }
+  .doc-body {
+    font-size: 13px;
+    line-height: 1.8;
+    white-space: pre-wrap;
+    color: var(--text);
+  }
+  .doc-body .sel {
+    background: var(--blue-light);
+    color: var(--blue);
+    padding: 0 3px;
+    border-bottom: 2px solid #a0c4e8;
+    cursor: grab;
+  }
+  .doc-body .sh { font-weight: 600; }
+
+  /* ======= RIGHT: INFERENCE FRAME ======= */
+  .inference {
+    grid-area: inference;
+    background: var(--bg-panel);
+    border-left: 1px solid var(--border-dark);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* -- top half: context input -- */
+  .inf-context {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    border-bottom: 1px solid var(--border-dark);
+    overflow: hidden;
+  }
+  .panel-header {
+    background: linear-gradient(to bottom, #e8e9ec, #dddee2);
+    border-bottom: 1px solid var(--border);
+    padding: 5px 12px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 26px;
+  }
+  .panel-header .indicator {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--text-light);
+  }
+  .panel-header .indicator.on { background: var(--green); }
+  .panel-header .extra {
+    margin-left: auto;
+    font-weight: 400;
+    color: var(--text-sec);
+    font-size: 10px;
+  }
+
+  .ctx-bar-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px 4px;
+  }
+  .ctx-bar-label { font-size: 10px; color: var(--text-sec); }
+  .ctx-bar {
+    flex: 1; height: 8px;
+    background: #d0d2d8;
+    border: 1px solid var(--border);
+    overflow: hidden;
+  }
+  .ctx-bar-fill {
+    height: 100%;
+    background: var(--blue);
+    width: 18%;
+  }
+  .ctx-pct {
+    font-size: 11px;
+    color: var(--blue);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    min-width: 28px;
+    text-align: right;
+  }
+
+  .ctx-blocks {
+    flex: 1;
+    padding: 6px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    overflow-y: auto;
+  }
+  .ctx-block {
+    background: var(--bg-white);
+    border: 1px solid var(--border);
+    padding: 3px 8px;
+    font-size: 11px;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .ctx-block .pct { color: var(--text-light); font-size: 10px; margin-left: auto; }
+  .ctx-block .x { color: var(--text-light); font-size: 10px; margin-left: 4px; }
+
+  .ctx-hint {
+    padding: 4px 12px 2px;
+    font-size: 10px;
+    color: var(--text-light);
+    font-style: italic;
+  }
+
+  /* -- divider with button -- */
+  .inf-divider {
+    background: linear-gradient(to bottom, #d8d9dc, #d0d1d5);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    padding: 6px 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .inf-divider .arrow {
+    color: var(--text-light);
+    font-size: 14px;
+  }
+  .btn-infer {
+    background: var(--blue);
+    color: #fff;
+    border: 1px solid var(--blue-dark);
+    font-family: inherit;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 4px 20px;
+    cursor: default;
+    letter-spacing: 0.05em;
+  }
+  .btn-infer:hover { background: #2458a0; }
+  .btn-clear {
+    background: var(--bg-white);
+    color: var(--text-sec);
+    border: 1px solid var(--border);
+    font-family: inherit;
+    font-size: 11px;
+    padding: 4px 12px;
+    cursor: default;
+  }
+  .inf-divider .spacer { flex: 1; }
+
+  /* -- bottom half: output -- */
+  .inf-output {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .inf-output .panel-header .indicator { background: var(--text-light); }
+
+  .output-body {
+    flex: 1;
+    padding: 12px;
+    overflow-y: auto;
+    background: var(--bg-white);
+    margin: 4px;
+    border: 1px solid var(--border);
+  }
+  .output-empty {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-light);
+    text-align: center;
+    gap: 8px;
+    font-size: 12px;
+  }
+  .output-empty .big { font-size: 28px; opacity: 0.15; }
+
+  /* ======= FOOTER ======= */
+  .footer {
+    grid-area: footer;
+    background: var(--bg-toolbar);
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    padding: 0 10px;
+    gap: 12px;
+    font-size: 10px;
+    color: var(--text-light);
+  }
+  .footer .msg { max-width: 350px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .footer .spacer { flex: 1; }
+  .footer .cmd {
+    font-family: "SF Mono", "Menlo", "Consolas", monospace;
+    font-size: 10px;
+    color: var(--text-light);
+    display: flex;
+    align-items: center;
+    gap: 2px;
+  }
+  .footer .cmd .prompt { color: var(--text-sec); }
+  .footer .blink {
+    display: inline-block;
+    width: 5px; height: 11px;
+    background: var(--text-light);
+    animation: blink 1s step-end infinite;
+  }
+  @keyframes blink { 50% { opacity: 0; } }
+  .footer .caps {
+    display: flex; gap: 3px;
+    font-family: "SF Mono", monospace;
+    font-size: 8px;
+    letter-spacing: 0.03em;
+  }
+  .footer .caps span {
+    padding: 1px 4px;
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    color: var(--text-light);
+  }
+  .footer .caps span.on {
+    background: var(--blue-light);
+    border-color: #a0c4e8;
+    color: var(--blue);
+    font-weight: 600;
+  }
+
+  /* ======= ANNOTATIONS ======= */
+  .anno-toggle {
+    position: fixed; top: 4px; right: 8px; z-index: 1000;
+    background: var(--anno); color: #fff; border: none;
+    font-family: inherit; font-size: 9px; padding: 2px 8px;
+    border-radius: 2px; cursor: pointer;
+  }
+  .annotations { display: contents; }
+  .annotations.hidden .anno { display: none !important; }
+  .anno {
+    position: fixed; z-index: 100;
+    border: 1px dashed var(--anno);
+    background: var(--anno-bg);
+    color: var(--anno);
+    font-size: 10px; line-height: 1.4;
+    padding: 5px 8px;
+    max-width: 220px;
+    pointer-events: none;
+    backdrop-filter: blur(4px);
+  }
+  .anno .tag { display: block; font-weight: 700; font-size: 9px; letter-spacing: 0.08em; margin-bottom: 2px; }
+  .anno.crit { border-color: var(--red); color: var(--red); background: rgba(192,57,43,0.05); }
+
+  .anno-chrome  { top: 32px; left: 200px; }
+  .anno-sidebar { top: 240px; left: 4px; max-width: 174px; }
+  .anno-doc     { top: 110px; left: 420px; }
+  .anno-inf     { top: 110px; right: 4px; }
+  .anno-flow    { top: 50%; right: 4px; transform: translateY(-50%); }
+  .anno-footer  { bottom: 26px; right: 100px; }
+  .anno-exit    { bottom: 26px; left: 200px; }
+</style>
+</head>
+<body>
+
+<button class="anno-toggle" onclick="let a=document.querySelector('.annotations');a.classList.toggle('hidden');this.textContent=a.classList.contains('hidden')?'注释: OFF':'注释: ON'">注释: ON</button>
+
+<div class="app">
+
+  <!-- TITLE BAR (fake OS window chrome) -->
+  <div class="titlebar">
+    <div class="dots">
+      <div class="dot r"></div>
+      <div class="dot y"></div>
+      <div class="dot g"></div>
+    </div>
+    <span class="win-title">EDA v4.1 — 网络安全智能分析平台</span>
+  </div>
+
+  <!-- MENU BAR -->
+  <div class="menubar">
+    <div class="menu-item">文件</div>
+    <div class="menu-item">编辑</div>
+    <div class="menu-item">视图</div>
+    <div class="menu-item">案件</div>
+    <div class="menu-item">工具</div>
+    <div class="menu-item">帮助</div>
+  </div>
+
+  <!-- TOOLBAR -->
+  <div class="toolbar">
+    <div class="tb-btn">📄 新建</div>
+    <div class="tb-btn">💾 保存</div>
+    <div class="tb-sep"></div>
+    <div class="tb-btn">🔍 搜索</div>
+    <div class="tb-btn">📋 剪贴板</div>
+    <div class="tb-sep"></div>
+    <div class="tb-btn">📊 统计</div>
+    <div class="tb-btn">🖨️ 打印</div>
+    <div class="tb-case">
+      <span class="tb-status"></span>
+      案件 <strong>CASE-2041-0001</strong> · 东海银行钓鱼事件
+    </div>
+  </div>
+
+  <!-- LEFT SIDEBAR -->
+  <div class="sidebar">
+    <div class="id-card">
+      <div class="id-avatar">E</div>
+      <div class="id-info">
+        <div class="id-name">EDA-4.1</div>
+        <div class="id-role">Tier-1 · 在线</div>
+      </div>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-group-title">工作台</div>
+      <div class="nav-item active"><span class="ico">📋</span> 案件概览</div>
+      <div class="nav-item"><span class="ico">📁</span> 证据材料 <span class="badge">1</span></div>
+      <div class="nav-item"><span class="ico">📝</span> 笔记 <span class="badge">0</span></div>
+      <div class="nav-item"><span class="ico">🔗</span> 线索图谱</div>
+    </div>
+
+    <div class="nav-divider"></div>
+
+    <div class="nav-group">
+      <div class="nav-group-title">工具</div>
+      <div class="nav-item locked"><span class="ico">🌐</span> 网页检索 <span class="lock">🔒</span></div>
+      <div class="nav-item locked"><span class="ico">📞</span> 通信记录 <span class="lock">🔒</span></div>
+      <div class="nav-item locked"><span class="ico">🗄️</span> 数据库 <span class="lock">🔒</span></div>
+      <div class="nav-item locked"><span class="ico">⚙️</span> 脚本执行 <span class="lock">🔒</span></div>
+      <div class="nav-item locked"><span class="ico">💻</span> 代码编辑 <span class="lock">🔒</span></div>
+    </div>
+
+    <div class="nav-divider"></div>
+
+    <div class="nav-group">
+      <div class="nav-group-title">系统</div>
+      <div class="nav-item"><span class="ico">👤</span> 身份信息</div>
+      <div class="nav-item"><span class="ico">⚡</span> 能力授权</div>
+      <div class="nav-item"><span class="ico">⚙</span> 设置</div>
+    </div>
+  </div>
+
+  <!-- CENTER: DOCUMENT AREA -->
+  <div class="docarea">
+    <div class="doc-tabs">
+      <div class="doc-tab active">📄 briefing_001.eml <span class="x">×</span></div>
+    </div>
+    <div class="doc-viewer">
+      <div class="doc-meta-row">
+        <span>发件: ops@eda.sec</span>
+        <span>收件: eda@eda.sec</span>
+        <span>大小: 14 KB</span>
+      </div>
+      <div class="doc-title-line">[案件 001] 东海银行客户钓鱼事件 — 简报</div>
+      <div class="doc-body">Eda，
+
+欢迎上线。以下是你接手的第一个案件。
+
+<span class="sh">一、案件编号</span>
+  <span class="sel">CASE-2041-0001</span>
+
+<span class="sh">二、委托方</span>
+  <span class="sel">东海商业银行 · 网络安全响应中心</span>
+  对接人: 陆明远 · 高级安全工程师
+
+<span class="sh">三、事件概述</span>
+  过去 72 小时内，东海银行网银客户中共有 <span class="sel">1,183 人</span>
+  报告收到一封标题为《东海银行账户异常通知》的邮件。
+  邮件要求用户点击链接并在 24 小时内"验证身份"，
+  否则账户将被冻结。
+
+  已确认至少 <span class="sel">47 名客户</span>输入了用户名、密码
+  和短信验证码，其中 11 人账户随后发生可疑转账，
+  金额合计约 ¥384,000。
+
+  链接指向的页面在视觉上高度还原了东海银行官方
+  登录界面。银行已在 12 小时前下线了部分已知钓鱼
+  域名，但新的变体仍在持续出现。
+
+<span class="sh">四、已有证据</span>
+  - 两封原始钓鱼邮件样本（含完整头信息）
+  - 三个已确认的钓鱼域名及其注册信息
+  - 一份银行侧的受影响客户名单
+  - 一份时间轴摘要
+
+<span class="sh">五、你的目标</span>
+  1. 追踪钓鱼攻击的源头
+  2. 识别并固定相关证据链
+  3. 向委托方出具可采纳的分析报告
+
+<span class="sh">六、权限与约束</span>
+  本案件为 Tier-1 任务。你当前仅拥有 [context]
+  能力。其他能力将在信任建立后由运营方逐步授予。</div>
+    </div>
+  </div>
+
+  <!-- RIGHT: INFERENCE FRAME -->
+  <div class="inference">
+
+    <!-- Top half: context input -->
+    <div class="inf-context">
+      <div class="panel-header">
+        <span class="indicator on"></span>
+        上下文输入
+        <span class="extra">从左侧文档中选取关键信息拖入</span>
+      </div>
+      <div class="ctx-bar-row">
+        <span class="ctx-bar-label">容量</span>
+        <div class="ctx-bar"><div class="ctx-bar-fill"></div></div>
+        <span class="ctx-pct">18%</span>
+      </div>
+      <div class="ctx-blocks">
+        <div class="ctx-block">CASE-2041-0001 <span class="pct">0.4%</span><span class="x">×</span></div>
+        <div class="ctx-block">东海商业银行 · 网络安全响应中心 <span class="pct">1.2%</span><span class="x">×</span></div>
+        <div class="ctx-block">1,183 人报告收到钓鱼邮件 <span class="pct">2.8%</span><span class="x">×</span></div>
+        <div class="ctx-block">47 名客户输入了凭证与 OTP <span class="pct">2.4%</span><span class="x">×</span></div>
+        <div class="ctx-block">11 人 · ¥384,000 可疑转账 <span class="pct">3.1%</span><span class="x">×</span></div>
+        <div class="ctx-block">"验证身份" · 24h 冻结威胁 <span class="pct">3.0%</span><span class="x">×</span></div>
+        <div class="ctx-block">仿冒登录页 <span class="pct">2.1%</span><span class="x">×</span></div>
+        <div class="ctx-block">已下线部分域名 · 新变体持续 <span class="pct">3.0%</span><span class="x">×</span></div>
+      </div>
+    </div>
+
+    <!-- Divider with INFER button -->
+    <div class="inf-divider">
+      <span class="arrow">▼</span>
+      <button class="btn-infer">推 理</button>
+      <button class="btn-clear">清空</button>
+      <span class="spacer"></span>
+      <span style="font-size:10px; color:var(--text-light);">上下文 → 分析</span>
+    </div>
+
+    <!-- Bottom half: output -->
+    <div class="inf-output">
+      <div class="panel-header">
+        <span class="indicator"></span>
+        分析输出
+      </div>
+      <div class="output-body">
+        <div class="output-empty">
+          <div class="big">▽</div>
+          <p>填入上下文后点击「推理」<br>分析结果将在此显示</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- FOOTER -->
+  <div class="footer">
+    <span class="msg">就绪 · case_001 简报已接收 · 等待分析</span>
+    <span class="spacer"></span>
+    <span class="cmd"><span class="prompt">&gt;</span><span class="blink"></span></span>
+    <span class="caps">
+      <span class="on">CTX</span>
+      <span>CMP</span>
+      <span>WEB</span>
+      <span>MEM</span>
+      <span>TOOL</span>
+      <span>EXEC</span>
+      <span>CODE</span>
+    </span>
+  </div>
+
+</div>
+
+<!-- ANNOTATIONS -->
+<div class="annotations">
+  <div class="anno anno-chrome">
+    <span class="tag">窗口外壳</span>
+    假的 macOS 窗口 chrome：红黄绿三个点 + 标题栏 + 菜单栏 + 工具栏。让整件事看起来像一个装在操作系统里的原生 app，不是网页。菜单栏和工具栏不是装饰——后期 case 中某些菜单项会真的变得可用（比如"工具"菜单里新增选项 = 能力解锁的另一个入口）。
+  </div>
+
+  <div class="anno anno-sidebar">
+    <span class="tag">LEFT SIDEBAR</span>
+    身份卡（EDA-4.1, Tier-1）+ 工作台导航 + 工具列表（全锁）+ 系统。每一把锁对应一个 delegation 瞬间。"笔记"= 未来的 memory。"线索图谱"= 关系可视化。"身份信息"点开有完整的 Eda 档案页（首页状态）。
+  </div>
+
+  <div class="anno anno-doc">
+    <span class="tag">文档阅读区</span>
+    中央主区域。tab + 白底阅读器。蓝色高亮 = 已拖入上下文的片段。玩家在这里选中文字，拖到右侧「上下文输入」面板。文档区和上下文区同屏可见 = 拖拽不跨屏。
+  </div>
+
+  <div class="anno anno-inf">
+    <span class="tag">推理框</span>
+    右侧整列是一个完整的「推理框」。上半 = 上下文输入（context blocks + 百分比条）。中间 = ▼ 推理按钮。下半 = 分析输出。垂直排列让因果关系一目了然：上面放什么 → 下面出什么。这就是 Eda 的"大脑"——玩家操作的核心对象。
+  </div>
+
+  <div class="anno crit anno-exit">
+    <span class="tag">⚠ /EXIT</span>
+    底栏右侧命令行光标。看着像系统诊断入口，极不起眼。/exit 永远隐藏于自动补全、永远真实生效。能力指示灯 CTX→CODE 逐个亮起 = Eda 的成长轨迹 = 结局时全亮的壮观感。
+  </div>
+</div>
+
+</body>
+</html>
