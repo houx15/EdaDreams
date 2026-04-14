@@ -1,0 +1,123 @@
+/* EdaDreams — Global Styles
+ * Derived from wireframes/case00_machine.html v1.0
+ * Desktop app aesthetic — NOT a game, NOT a web app
+ */
+
+:root {
+  /* Core palette */
+  --bg: #dfe1e5;
+  --bg-panel: #ecedef;
+  --bg-white: #ffffff;
+  --bg-titlebar: #3a3a3c;
+  --bg-menubar: #f0f0f2;
+  --bg-toolbar: #e6e7ea;
+  --bg-sidebar: #2c3e5a;
+  --bg-sidebar-hover: #34496a;
+  --bg-sidebar-active: #3d5580;
+  --header-bg: #1a2944;
+
+  /* Blues */
+  --blue: #2968b0;
+  --blue-light: #dce8f5;
+  --blue-dark: #1a3d6e;
+
+  /* Text */
+  --text: #1a1a2e;
+  --text-sec: #555a68;
+  --text-light: #888d9a;
+  --text-sidebar: #a0aec0;
+  --text-sidebar-active: #ffffff;
+
+  /* Borders */
+  --border: #c4c7cc;
+  --border-dark: #a8abb2;
+  --border-panel: #b8bcc4;
+
+  /* Status colors */
+  --green: #2d8a4e;
+  --red: #c0392b;
+  --orange: #c27020;
+
+  /* Context capacity bar */
+  --ctx-blue: #4a9eff;
+  --ctx-orange: #ff9800;
+  --ctx-red: #f44336;
+
+  /* Accent */
+  --accent: #4a9eff;
+
+  /* Font stack */
+  --font-ui: "Microsoft YaHei", "PingFang SC", "Segoe UI", Tahoma, sans-serif;
+  --font-mono: "SF Mono", "Menlo", "Consolas", "Courier New", monospace;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-ui);
+  font-size: 12px;
+  line-height: 1.4;
+  overflow: hidden;
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+/* Interactive elements should not be selectable */
+button,
+[role="button"],
+.nav-item,
+.doc-tab,
+.tab-item,
+.cmd,
+.autocomplete,
+.autocomplete-item,
+.menu-bar,
+.toolbar,
+.title-bar,
+.caps span {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.evidence-item {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.evidence-filename,
+.evidence-meta {
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+.selectable {
+  cursor: text;
+}
+
+#app {
+  width: 100vw;
+  height: 100vh;
+}
+
+/* Main grid layout — matches wireframe */
+.app-layout {
+  width: 100vw;
+  height: 100vh;
+  display: grid;
+  grid-template-rows: 28px 1fr 22px;
+  grid-template-columns: 180px 1fr 360px;
+  grid-template-areas:
+    "titlebar titlebar titlebar"
+    "sidebar  docarea  inference"
+    "footer   footer   footer";
+}
+
+.hidden { display: none !important; }
