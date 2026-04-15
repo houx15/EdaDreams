@@ -75,6 +75,15 @@ function selectHint(hints: HintConfig | undefined, attemptCount: number): string
   return hints['4+'] ?? '';
 }
 
+function computeNoiseDilutionNote(contextTexts: string[], noiseWords: string[] | undefined): string {
+  if (!noiseWords || noiseWords.length === 0) return '';
+  const matched = noiseWords.filter((word) =>
+    contextTexts.some((text) => text.includes(word))
+  );
+  if (matched.length === 0) return '';
+  return `[注意：上下文中包含部分与当前分析关联较弱的内容（${matched.join('、')}），可能分散焦点。]`;
+}
+
 export function runInferenceV2(
   data: InferenceMapData,
   options: RunInferenceV2Options,
@@ -151,6 +160,11 @@ export function runInferenceV2(
 
   if (bestStage.conditional_note) {
     output += '\n\n' + bestStage.conditional_note;
+  }
+
+  const noiseNote = computeNoiseDilutionNote(contextTexts, bestStage.noise_words);
+  if (noiseNote) {
+    output += '\n\n' + noiseNote;
   }
 
   const hint = selectHint(bestStage.hints_by_attempt, attemptCount);

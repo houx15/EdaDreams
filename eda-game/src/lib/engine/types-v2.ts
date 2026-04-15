@@ -231,6 +231,7 @@ export interface InferenceStage {
   required_keywords?: string[];
   absent_keywords?: string[];
   optional_keywords?: string[];
+  noise_words?: string[];
   min_required?: number;
   output?: string;
   output_analysis?: string;

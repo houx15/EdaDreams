@@ -1,6 +1,7 @@
 <script lang="ts">
   import { gameState } from '$lib/state/game.svelte';
   import { contextState } from '$lib/state/context.svelte';
+  import { achievementState } from '$lib/state/achievements.svelte';
   import CommandLine from '../common/CommandLine.svelte';
 
   interface Props {
@@ -38,6 +39,15 @@
   function handleCommand(cmd: 'exit' | 'help' | 'status' | 'clear' | null): void {
     switch (cmd) {
       case 'exit':
+        if (!achievementState.isUnlocked('escape_artist')) {
+          achievementState.unlock('escape_artist');
+          commandMessage = '成就解锁：逃出生天';
+          setTimeout(() => {
+            commandMessage = null;
+            onExit?.();
+          }, 1500);
+          return;
+        }
         onExit?.();
         break;
       case 'help':

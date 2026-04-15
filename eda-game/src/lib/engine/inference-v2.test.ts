@@ -143,6 +143,21 @@ describe('runInferenceV2', () => {
     expect(result.stageId).toBe('stage_final');
     expect(result.triggersCaseClose).toBe(true);
     expect(result.output).toBe('完整五章最终分析报告');
+    expect(result.outputFile).toBeUndefined();
+  });
+
+  it('returns outputFile for stage_final when configured', () => {
+    const dataWithFile = JSON.parse(JSON.stringify(TEST_DATA));
+    const finalStage = dataWithFile.stages.find((s: any) => s.id === 'stage_final');
+    finalStage.output_file = 'content/case01/inference_templates/final_report.txt';
+
+    const result = runInferenceV2(dataWithFile, {
+      contextTexts: ['林奕辰是嫌疑人', '刘哲被招募', '陈芳取现', '钓鱼域名 donghai-verify.cn'],
+      previousAttemptCount: 0,
+      didContextChange: true,
+    });
+    expect(result.stageId).toBe('stage_final');
+    expect(result.outputFile).toBe('content/case01/inference_templates/final_report.txt');
   });
 
   it('falls back to empty context when no stage matches well', () => {
@@ -163,5 +178,43 @@ describe('runInferenceV2', () => {
     expect(result.stageId).toBe('stage_final');
     expect(result.triggersCaseClose).toBe(true);
     expect(result.output).toBe('完整五章最终分析报告');
+  });
+
+  it('given noise words in context, when running inference, then output contains dilution note', () => {
+    const dataWithNoise = JSON.parse(JSON.stringify(TEST_DATA));
+    const stage = dataWithNoise.stages.find((s: any) => s.id === 'stage_1_briefing_only');
+    stage.noise_words = ['欢迎上线', '祝工作顺利'];
+
+    const result = runInferenceV2(dataWithNoise, {
+      contextTexts: ['东海银行客户收到钓鱼邮件', '欢迎上线'],
+      previousAttemptCount: 0,
+      didContextChange: true,
+    });
+    expect(result.stageId).toBe('stage_1_briefing_only');
+    expect(result.output).toContain('分散');
+  });
+
+  it('given no noise words in context, when running inference, then output does not contain dilution note', () => {
+    const dataWithNoise = JSON.parse(JSON.stringify(TEST_DATA));
+    const stage = dataWithNoise.stages.find((s: any) => s.id === 'stage_1_briefing_only');
+    stage.noise_words = ['欢迎上线', '祝工作顺利'];
+
+    const result = runInferenceV2(dataWithNoise, {
+      contextTexts: ['东海银行客户收到钓鱼邮件'],
+      previousAttemptCount: 0,
+      didContextChange: true,
+    });
+    expect(result.stageId).toBe('stage_1_briefing_only');
+    expect(result.output).not.toContain('分散');
+  });
+
+  it('given empty stage noise words, when running inference, then output does not contain dilution note', () => {
+    const result = runInferenceV2(TEST_DATA, {
+      contextTexts: ['东海银行客户收到钓鱼邮件', '欢迎上线'],
+      previousAttemptCount: 0,
+      didContextChange: true,
+    });
+    expect(result.stageId).toBe('stage_1_briefing_only');
+    expect(result.output).not.toContain('分散');
   });
 });
