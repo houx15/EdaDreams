@@ -1,42 +1,139 @@
 <script lang="ts">
   import TitleBar from '../components/shell/TitleBar.svelte';
   import Sidebar from '../components/sidebar/Sidebar.svelte';
-  import DocumentArea from '../components/reader/DocumentArea.svelte';
+  import WorkbenchArea from '../components/reader/WorkbenchArea.svelte';
   import InferencePanel from '../components/inference/InferencePanel.svelte';
   import StatusBar from '../components/shell/StatusBar.svelte';
   import { gameState } from '$lib/state/game.svelte';
   import { inferenceState } from '$lib/state/inference.svelte';
-  import { BRIEFING_EMAIL } from '$lib/data/case00';
-  import { CASE01_EVIDENCE } from '$lib/data/case01';
-  import type { EvidenceFile } from '$lib/engine/types';
+import { evidenceManagerV2 } from '$lib/state/evidence-v2.svelte';
+import { INITIAL_EVIDENCE, MEMO_EVIDENCE, ATTACHMENT_EVIDENCE } from '$lib/data/evidence-factory';
+import { loadTextContent } from '$lib/data/loaders';
+import { getEvidenceContent, clearEvidenceContentCache } from '$lib/state/evidence-content-cache';
+  import type { EvidenceFile, WorkbenchTab, EvidenceItem } from '$lib/engine/types';
+  import { onMount } from 'svelte';
 
   const MAX_TABS = 5;
 
-  const ALL_EVIDENCE_MAP: Record<string, EvidenceFile> = {};
-  ALL_EVIDENCE_MAP[BRIEFING_EMAIL.id] = BRIEFING_EMAIL;
-  for (const e of CASE01_EVIDENCE) {
-    ALL_EVIDENCE_MAP[e.id] = e;
-    ALL_EVIDENCE_MAP[e.filename] = e;
-  }
-
-  let openTabs = $state<EvidenceFile[]>([BRIEFING_EMAIL]);
-  let activeTab = $state<EvidenceFile | null>(BRIEFING_EMAIL);
-
+  let evidenceCache = $state<Record<string, EvidenceFile>>({});
+  let openTabs = $state<WorkbenchTab[]>([]);
+  let activeTab = $state<WorkbenchTab | null>(null);
   let showAchievement = $state(false);
   let showExitOverlay = $state(false);
 
-  function handleTabClick(evidence: EvidenceFile): void {
-    activeTab = evidence;
+  onMount(() => {
+    evidenceManagerV2.reset();
+    clearEvidenceContentCache();
+    for (const item of INITIAL_EVIDENCE) {
+      evidenceManagerV2.unlock(item);
+    }
+    evidenceManagerV2.unlock(MEMO_EVIDENCE);
+    evidenceManagerV2.unlock(ATTACHMENT_EVIDENCE);
+
+    loadEvidenceContent(INITIAL_EVIDENCE[0]).then((file) => {
+      const briefingTab: WorkbenchTab = {
+        id: 'briefing_001',
+        type: 'document',
+        title: 'briefing_001.eml',
+        evidenceFile: file,
+      };
+      openTabs = [briefingTab];
+      activeTab = briefingTab;
+    });
+  });
+
+  async function loadEvidenceContent(item: EvidenceItem): Promise<EvidenceFile> {
+    if (evidenceCache[item.id]) {
+      return evidenceCache[item.id];
+    }
+
+    const cachedContent = getEvidenceContent(item.id);
+    const content = cachedContent ?? await loadTextContent(`/data/content/case01/${item.filename}`);
+    const file: EvidenceFile = {
+      id: item.id,
+      filename: item.displayName,
+      content,
+      sizeLabel: item.sizeLabel,
+      caseNumber: 'CASE-2041-0001',
+      evidenceNumber: 0,
+      tokenEstimate: item.tokenEstimate,
+      percentageEstimate: item.percentageEstimate,
+    };
+    evidenceCache[item.id] = file;
+    return file;
   }
 
-  function handleTabClose(evidence: EvidenceFile): void {
-    const index = openTabs.findIndex((t) => t.id === evidence.id);
+  async function openEvidenceTab(item: EvidenceItem): Promise<void> {
+    const existingTab = openTabs.find((t) => t.id === item.id);
+    if (existingTab) {
+      activeTab = existingTab;
+      return;
+    }
+
+    if (openTabs.length >= MAX_TABS) {
+      return;
+    }
+
+    const file = await loadEvidenceContent(item);
+    const newTab: WorkbenchTab = {
+      id: item.id,
+      type: 'document',
+      title: item.displayName,
+      evidenceFile: file,
+    };
+    openTabs = [...openTabs, newTab];
+    activeTab = newTab;
+  }
+
+  function openBrowserTab(url = '', title = '网页检索'): void {
+    const existingTab = openTabs.find((t) => t.type === 'browser' && t.browserUrl === url);
+    if (existingTab) {
+      activeTab = existingTab;
+      return;
+    }
+
+    if (openTabs.length >= MAX_TABS) return;
+
+    const newTab: WorkbenchTab = {
+      id: `browser_${Date.now()}`,
+      type: 'browser',
+      title,
+      browserUrl: url,
+    };
+    openTabs = [...openTabs, newTab];
+    activeTab = newTab;
+  }
+
+  function openPhoneTab(): void {
+    const existingTab = openTabs.find((t) => t.type === 'phone');
+    if (existingTab) {
+      activeTab = existingTab;
+      return;
+    }
+
+    if (openTabs.length >= MAX_TABS) return;
+
+    const newTab: WorkbenchTab = {
+      id: `phone_${Date.now()}`,
+      type: 'phone',
+      title: '通话',
+    };
+    openTabs = [...openTabs, newTab];
+    activeTab = newTab;
+  }
+
+  function handleTabClick(tab: WorkbenchTab): void {
+    activeTab = tab;
+  }
+
+  function handleTabClose(tab: WorkbenchTab): void {
+    const index = openTabs.findIndex((t) => t.id === tab.id);
     if (index === -1) return;
 
-    const newTabs = openTabs.filter((t) => t.id !== evidence.id);
+    const newTabs = openTabs.filter((t) => t.id !== tab.id);
     openTabs = newTabs;
 
-    if (activeTab?.id === evidence.id) {
+    if (activeTab?.id === tab.id) {
       if (newTabs.length > 0) {
         const newIndex = Math.min(index, newTabs.length - 1);
         activeTab = newTabs[newIndex];
@@ -46,25 +143,13 @@
     }
   }
 
-  function handleEvidenceSelect(evidence: EvidenceFile): void {
-    const alreadyOpen = openTabs.find((t) => t.id === evidence.id);
-    if (alreadyOpen) {
-      activeTab = alreadyOpen;
-      return;
-    }
-
-    if (openTabs.length >= MAX_TABS) {
-      return;
-    }
-
-    openTabs = [...openTabs, evidence];
-    activeTab = evidence;
-  }
-
-  function handleUnlock(event: { evidenceId: string }): void {
-    const evidence = ALL_EVIDENCE_MAP[event.evidenceId];
-    if (evidence) {
-      handleEvidenceSelect(evidence);
+  function handleSidebarSelect(item: EvidenceItem, action: 'open' | 'browser' | 'phone'): void {
+    if (action === 'open') {
+      openEvidenceTab(item);
+    } else if (action === 'browser') {
+      openBrowserTab();
+    } else if (action === 'phone') {
+      openPhoneTab();
     }
   }
 
@@ -93,14 +178,14 @@
 
 <div class="app-layout">
   <TitleBar />
-  <Sidebar onSelect={handleEvidenceSelect} />
-  <DocumentArea
+  <Sidebar onSelect={handleSidebarSelect} />
+  <WorkbenchArea
     tabs={openTabs}
     {activeTab}
     onTabClick={handleTabClick}
     onTabClose={handleTabClose}
   />
-  <InferencePanel onUnlock={handleUnlock} />
+  <InferencePanel />
   <StatusBar onExit={handleExit} onClear={handleClear} />
 </div>
 

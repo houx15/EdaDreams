@@ -83,3 +83,34 @@ export interface CapacityInfo {
   color: 'blue' | 'orange' | 'red';
   overflow: boolean;
 }
+
+export type EvidenceSourceType = 'briefing' | 'attachment' | 'memo' | 'tool' | 'phone_call' | 'forensics_package';
+
+export interface EvidenceSource {
+  type: EvidenceSourceType;
+  toolId?: string;
+  lockId?: string;
+  query?: string;
+}
+
+export interface EvidenceItem {
+  id: string;
+  filename: string;
+  displayName: string;
+  source: EvidenceSource;
+  sizeLabel: string;
+  tokenEstimate: number;
+  percentageEstimate: number;
+  unlockedAt?: number;
+}
+
+export type WorkbenchTabType = 'document' | 'browser' | 'phone';
+
+export interface WorkbenchTab {
+  id: string;
+  type: WorkbenchTabType;
+  title: string;
+  evidenceFile?: EvidenceFile;
+  browserUrl?: string;
+  phoneNumber?: string;
+}

@@ -1,7 +1,6 @@
 <script lang="ts">
-  import TabBar from './TabBar.svelte';
-  import DocumentViewer from './DocumentViewer.svelte';
-  import type { EvidenceFile } from '$lib/engine/types';
+  import WorkbenchArea from './WorkbenchArea.svelte';
+  import type { EvidenceFile, WorkbenchTab } from '$lib/engine/types';
 
   interface Props {
     tabs: EvidenceFile[];
@@ -11,19 +10,39 @@
   }
 
   let { tabs, activeTab, onTabClick, onTabClose }: Props = $props();
+
+  const workbenchTabs = $derived(
+    tabs.map((e): WorkbenchTab => ({
+      id: e.id,
+      type: 'document',
+      title: e.filename,
+      evidenceFile: e,
+    }))
+  );
+
+  const workbenchActive = $derived(
+    activeTab
+      ? {
+          id: activeTab.id,
+          type: 'document' as const,
+          title: activeTab.filename,
+          evidenceFile: activeTab,
+        }
+      : null
+  );
+
+  function handleTabClick(tab: WorkbenchTab): void {
+    if (tab.evidenceFile) onTabClick(tab.evidenceFile);
+  }
+
+  function handleTabClose(tab: WorkbenchTab): void {
+    if (tab.evidenceFile) onTabClose(tab.evidenceFile);
+  }
 </script>
 
-<div class="docarea">
-  <TabBar {tabs} {activeTab} {onTabClick} {onTabClose} />
-  <DocumentViewer evidence={activeTab} />
-</div>
-
-<style>
-  .docarea {
-    grid-area: docarea;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    background: var(--bg);
-  }
-</style>
+<WorkbenchArea
+  tabs={workbenchTabs}
+  activeTab={workbenchActive}
+  onTabClick={handleTabClick}
+  onTabClose={handleTabClose}
+/>

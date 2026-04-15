@@ -1,46 +1,54 @@
 <script lang="ts">
-  import type { EvidenceFile } from '$lib/engine/types';
+  import type { WorkbenchTab } from '$lib/engine/types';
 
   interface Props {
-    tabs: EvidenceFile[];
-    activeTab: EvidenceFile | null;
-    onTabClick: (evidence: EvidenceFile) => void;
-    onTabClose: (evidence: EvidenceFile) => void;
+    tabs: WorkbenchTab[];
+    activeTab: WorkbenchTab | null;
+    onTabClick: (tab: WorkbenchTab) => void;
+    onTabClose: (tab: WorkbenchTab) => void;
   }
 
   let { tabs, activeTab, onTabClick, onTabClose }: Props = $props();
 
   const MAX_TAB_LABEL_LENGTH = 15;
 
-  function truncateFilename(filename: string): string {
-    if (filename.length <= MAX_TAB_LABEL_LENGTH) return filename;
-    return filename.slice(0, MAX_TAB_LABEL_LENGTH) + '…';
+  function truncateTitle(title: string): string {
+    if (title.length <= MAX_TAB_LABEL_LENGTH) return title;
+    return title.slice(0, MAX_TAB_LABEL_LENGTH) + '…';
+  }
+
+  function tabIcon(tab: WorkbenchTab): string {
+    switch (tab.type) {
+      case 'browser': return '🌐';
+      case 'phone': return '☎';
+      default: return '📄';
+    }
   }
 </script>
 
 <div class="doc-tabs">
-  {#each tabs as evidence (evidence.id)}
+  {#each tabs as tab (tab.id)}
     <div
       class="doc-tab"
-      class:active={activeTab?.id === evidence.id}
-      onclick={() => onTabClick(evidence)}
+      class:active={activeTab?.id === tab.id}
+      onclick={() => onTabClick(tab)}
       role="button"
       tabindex="0"
-      onkeydown={(e) => e.key === 'Enter' && onTabClick(evidence)}
+      onkeydown={(e) => e.key === 'Enter' && onTabClick(tab)}
     >
-      📄 {truncateFilename(evidence.filename)}
+      {tabIcon(tab)} {truncateTitle(tab.title)}
       <span
         class="x"
         onclick={(e) => {
           e.stopPropagation();
-          onTabClose(evidence);
+          onTabClose(tab);
         }}
         role="button"
         tabindex="0"
         onkeydown={(e) => {
           if (e.key === 'Enter') {
             e.stopPropagation();
-            onTabClose(evidence);
+            onTabClose(tab);
           }
         }}
       >

@@ -396,7 +396,7 @@
     </div>
 
     <div class="sidebar-wrap" class:visible={showInterface}>
-      <Sidebar onSelect={handleEvidenceSelect} />
+   <Sidebar onSelect={(_, action) => { /* BootScene sidebar selection not used */ }} />
     </div>
     <div class="docarea-wrap" class:visible={showInterface}>
       <DocumentArea tabs={openTabs} {activeTab} onTabClick={handleTabClick} onTabClose={handleTabClose} />
@@ -405,7 +405,7 @@
       <InferencePanel onUnlock={handleUnlock} />
     </div>
   {:else if gameState.phase === 'briefing'}
-    <Sidebar onSelect={handleEvidenceSelect} />
+    <Sidebar onSelect={(_, action) => { if (action === 'open') handleEvidenceSelect(BRIEFING_EMAIL); }} />
     <DocumentArea tabs={openTabs} {activeTab} onTabClick={handleTabClick} onTabClose={handleTabClose} />
     <InferencePanel onUnlock={handleUnlock} />
   {/if}

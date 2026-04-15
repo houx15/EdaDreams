@@ -1,26 +1,25 @@
 <script lang="ts">
-  import { evidenceState } from '$lib/state';
-  import { BRIEFING_EMAIL } from '$lib/data/case00';
-  import { CASE01_EVIDENCE } from '$lib/data/case01';
-  import type { EvidenceFile } from '$lib/engine/types';
+  import { evidenceManagerV2 } from '$lib/state/evidence-v2.svelte';
+  import { MEMO_EVIDENCE } from '$lib/data/evidence-factory';
+  import type { EvidenceItem } from '$lib/engine/types';
 
   interface Props {
-    onSelect?: (evidence: EvidenceFile) => void;
+    onSelect?: (item: EvidenceItem, action: 'open' | 'browser' | 'phone') => void;
   }
 
   let { onSelect }: Props = $props();
 
-  let evidenceExpanded = $state(false);
+  let evidenceExpanded = $state(true);
+  let memoExpanded = $state(false);
+  let toolsExpanded = $state(false);
 
-  const allEvidence = $derived([BRIEFING_EMAIL, ...CASE01_EVIDENCE]);
-  const unlockedEvidence = $derived(
-    allEvidence.filter((e) => evidenceState.isUnlocked(e.id))
-  );
+  const unlockedEvidence = $derived(evidenceManagerV2.getAll());
+  const memoItems = $derived([MEMO_EVIDENCE].filter((m) => evidenceManagerV2.isUnlocked(m.id)));
 
   const newlyUnlocked = $state<Set<string>>(new Set());
 
   $effect(() => {
-    const current = new Set(evidenceState.unlockedIds);
+    const current = new Set(evidenceManagerV2.getAll().map((i) => i.id));
     for (const id of current) {
       if (!newlyUnlocked.has(id)) {
         newlyUnlocked.add(id);
@@ -35,25 +34,38 @@
     evidenceExpanded = !evidenceExpanded;
   }
 
-  function handleEvidenceClick(evidence: EvidenceFile): void {
-    onSelect?.(evidence);
+  function toggleMemo(): void {
+    memoExpanded = !memoExpanded;
   }
 
-  const workbenchItems = [
-    { icon: '📋', label: '案件概览', active: true },
-  ];
+  function toggleTools(): void {
+    toolsExpanded = !toolsExpanded;
+  }
 
-  const toolItems: { icon: string; label: string; locked: boolean }[] = [];
+  function handleEvidenceClick(item: EvidenceItem): void {
+    onSelect?.(item, 'open');
+  }
+
+  function handleMemoClick(item: EvidenceItem): void {
+    onSelect?.(item, 'open');
+  }
+
+  function handleBrowserClick(): void {
+    onSelect?.(MEMO_EVIDENCE, 'browser');
+  }
+
+  function handlePhoneClick(): void {
+    onSelect?.(MEMO_EVIDENCE, 'phone');
+  }
 </script>
 
 <div class="nav-group">
   <div class="nav-group-title">工作台</div>
-  {#each workbenchItems as item}
-    <div class="nav-item" class:active={item.active}>
-      <span class="ico">{item.icon}</span>
-      {item.label}
-    </div>
-  {/each}
+
+  <div class="nav-item" class:active={true}>
+    <span class="ico">📋</span>
+    案件概览
+  </div>
 
   <div
     class="nav-item evidence-toggle"
@@ -65,7 +77,7 @@
     <span class="expand-icon" class:expanded={evidenceExpanded}>▶</span>
     <span class="ico">📁</span>
     证据材料
-    <span class="badge">{evidenceState.badgeCount}</span>
+    <span class="badge">{unlockedEvidence.length}</span>
   </div>
 
   {#if evidenceExpanded && unlockedEvidence.length > 0}
@@ -81,10 +93,41 @@
         >
           <span class="evidence-icon">📄</span>
           <div class="evidence-info">
-            <div class="evidence-filename">{evidence.filename}</div>
+            <div class="evidence-filename">{evidence.displayName}</div>
             <div class="evidence-meta">
-              {evidence.caseNumber} · 证据 #{String(evidence.evidenceNumber).padStart(2, '0')} · {evidence.sizeLabel}
+              {evidence.sizeLabel}
             </div>
+          </div>
+        </div>
+      {/each}
+    </div>
+  {/if}
+
+  <div
+    class="nav-item evidence-toggle"
+    onclick={toggleMemo}
+    role="button"
+    tabindex="0"
+    onkeydown={(e) => e.key === 'Enter' && toggleMemo()}
+  >
+    <span class="expand-icon" class:expanded={memoExpanded}>▶</span>
+    <span class="ico">📝</span>
+    备忘
+  </div>
+
+  {#if memoExpanded && memoItems.length > 0}
+    <div class="evidence-children">
+      {#each memoItems as memo (memo.id)}
+        <div
+          class="evidence-item"
+          onclick={() => handleMemoClick(memo)}
+          role="button"
+          tabindex="0"
+          onkeydown={(e) => e.key === 'Enter' && handleMemoClick(memo)}
+        >
+          <span class="evidence-icon">📝</span>
+          <div class="evidence-info">
+            <div class="evidence-filename">{memo.displayName}</div>
           </div>
         </div>
       {/each}
@@ -92,19 +135,32 @@
   {/if}
 </div>
 
-{#if toolItems.length > 0}
-  <div class="nav-divider"></div>
-  <div class="nav-group">
-    <div class="nav-group-title">工具</div>
-    {#each toolItems as item}
-      <div class="nav-item locked">
-        <span class="ico">{item.icon}</span>
-        {item.label}
-        <span class="lock">🔒</span>
-      </div>
-    {/each}
+<div class="nav-divider"></div>
+<div class="nav-group">
+  <div class="nav-group-title">工具</div>
+
+  <div
+    class="nav-item"
+    onclick={handleBrowserClick}
+    role="button"
+    tabindex="0"
+    onkeydown={(e) => e.key === 'Enter' && handleBrowserClick()}
+  >
+    <span class="ico">🌐</span>
+    网页检索
   </div>
-{/if}
+
+  <div
+    class="nav-item"
+    onclick={handlePhoneClick}
+    role="button"
+    tabindex="0"
+    onkeydown={(e) => e.key === 'Enter' && handlePhoneClick()}
+  >
+    <span class="ico">☎</span>
+    通话
+  </div>
+</div>
 
 <style>
   .nav-group {
@@ -147,15 +203,6 @@
     font-size: 9px;
     padding: 0px 6px;
     border-radius: 8px;
-  }
-  .nav-item.locked {
-    opacity: 0.3;
-    cursor: not-allowed;
-  }
-  .nav-item.locked .lock {
-    margin-left: auto;
-    font-size: 9px;
-    opacity: 0.5;
   }
   .nav-divider {
     border-top: 1px solid rgba(255, 255, 255, 0.08);

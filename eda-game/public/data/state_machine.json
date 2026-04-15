@@ -1,0 +1,130 @@
+{
+  "_meta": {
+    "description": "Case 01 全局状态机。定义所有'锁'及其解锁条件。coder 用这个文件控制游戏流程。",
+    "version": "3.0",
+    "date": "2026-04-14"
+  },
+
+  "locks": {
+    "bank_system": {
+      "name": "银行调查系统",
+      "type": "database",
+      "initial_state": "locked",
+      "unlock_condition": {
+        "method": "phone_call",
+        "target": "lu_mingyuan",
+        "player_must_mention": ["银行", "权限|查询|开通|系统"],
+        "description": "玩家打电话给陆明远，提到需要银行系统权限"
+      },
+      "unlock_response": "陆明远告知银行系统地址和临时账号密码",
+      "after_unlock": "玩家可使用 bank 下所有查询"
+    },
+
+    "telecom_138": {
+      "name": "通信记录 — 138-2771-9403",
+      "type": "database",
+      "initial_state": "locked",
+      "unlock_condition": {
+        "method": "phone_call",
+        "target": "lu_mingyuan",
+        "player_must_mention": ["138-2771-9403|13827719403", "通信|通话|记录|调取"],
+        "prerequisite": "玩家必须已经从某个来源获知了这个号码（邮箱信息）",
+        "description": "玩家打电话给陆明远，提供具体号码申请调取"
+      },
+      "unlock_response": "陆明远提交运营商申请，数秒后确认调到",
+      "after_unlock": "telecom/13827719403 可查询"
+    },
+
+    "telecom_189": {
+      "name": "通信记录 — 189-7654-3210",
+      "type": "database",
+      "initial_state": "locked",
+      "unlock_condition": {
+        "method": "phone_call",
+        "target": "lu_mingyuan",
+        "player_must_mention": ["189-7654-3210|18976543210"],
+        "prerequisite": "玩家需要提供理由（如：陈芳的手机号 / 刘哲通话记录里出现过的号码）",
+        "description": "玩家提供号码并说明理由"
+      },
+      "unlock_response": "陆明远确认调取",
+      "after_unlock": "telecom/18976543210 可查询",
+      "optional": true,
+      "optional_note": "非结案必须，但提供额外满足感"
+    },
+
+    "email_account": {
+      "name": "邮箱账号信息 — lz_tech@163.com",
+      "type": "evidence",
+      "initial_state": "locked",
+      "unlock_condition": {
+        "method": "phone_call",
+        "target": "lu_mingyuan",
+        "player_must_mention": ["lz_tech|163|邮箱", "查|调取|信息"],
+        "description": "玩家请陆明远帮忙调取邮箱信息"
+      },
+      "unlock_response": "陆明远联系网易调取，数秒后确认，资料发到系统",
+      "after_unlock": "email_account.json 内容可查看"
+    },
+
+    "vps_records": {
+      "name": "VPS 服务器登录记录",
+      "type": "evidence",
+      "initial_state": "locked",
+      "unlock_condition": {
+        "method": "phone_call",
+        "target": "lu_mingyuan",
+        "player_must_mention": ["vps|服务器", "登录|记录|日志"],
+        "prerequisite": "玩家需要已经知道 vps996.com 的存在（从邮箱发件记录或域名 DNS 中）",
+        "description": "玩家请陆明远协调 VPS 服务商调取登录记录"
+      },
+      "unlock_response": "陆明远联系 vps996，数秒后确认",
+      "after_unlock": "vps_records.json 内容可查看"
+    },
+
+    "phone_forensics": {
+      "name": "刘哲手机取证",
+      "type": "evidence_chain",
+      "initial_state": "locked",
+      "unlock_condition": {
+        "method": "phone_call",
+        "target": "lu_mingyuan",
+        "player_must_mention": ["手机|取证|应用|远程控制"],
+        "hard_prerequisite": "vps_records",
+        "hard_prerequisite_reason": "玩家必须先拿到 VPS 双 IP 证据，才能说服陆明远同意取证",
+        "rejection_if_no_prerequisite": "陆明远会问'你有什么依据认为他手机被控制了？'，拒绝请求",
+        "description": "玩家用 VPS 证据说服陆明远，申请手机取证"
+      },
+      "unlock_response": "陆明远确认刘哲手机已扣押，安排技术组取证，等待较久（8-10秒）",
+      "after_unlock": "forensics/ 下所有文件可查看"
+    },
+
+    "resident_info": {
+      "name": "武汉住户信息",
+      "type": "police_coordination",
+      "initial_state": "locked",
+      "unlock_condition": {
+        "method": "phone_call",
+        "target": "lu_mingyuan",
+        "player_must_mention": ["雄楚大道|鹏程花园|洪山区", "住户|谁住"],
+        "hard_prerequisite": "phone_forensics",
+        "hard_prerequisite_reason": "地址来自 AutoAI 截图，截图来自取证报告",
+        "description": "玩家提供具体地址，请陆明远协调武汉警方查住户"
+      },
+      "unlock_response": "陆明远联系武汉同事，等待较久（10秒），回电确认",
+      "after_unlock": "resident_info.json 内容可查看"
+    }
+  },
+
+  "unlock_chain_summary": {
+    "description": "关键授权链条（硬依赖）",
+    "chains": [
+      "邮箱信息 → 需打电话提供邮箱地址",
+      "通信记录 → 需打电话提供具体号码",
+      "银行系统 → 需打电话申请权限",
+      "VPS 记录 → 需打电话 + 知道 vps996 的存在",
+      "手机取证 → 需先拿到 VPS 双 IP 证据 → 才能说服陆明远",
+      "住户信息 → 需先拿到 AutoAI 截图中的地址 → 截图来自取证 → 取证来自 VPS"
+    ],
+    "longest_chain": "知道 vps996 → 调取 VPS 记录 → 说服陆明远 → 手机取证 → AutoAI 截图 → 拿到地址 → 调查住户 → 锁定林奕辰"
+  }
+}

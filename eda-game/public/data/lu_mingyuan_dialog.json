@@ -1,0 +1,133 @@
+{
+  "_meta": {
+    "description": "陆明远电话对话树。玩家打电话说话（打字），系统做关键词匹配，陆明远回复。",
+    "phone_number": "0755-8800-1234",
+    "greeting": "你好，这里是东海银行安全响应中心，我是陆明远。Eda 是吧？有什么需要？",
+    "matching_rule": "扫描玩家输入的全部文本，match 中任一项命中即触发。多个条目同时命中时，取 priority 最高的。",
+    "default_response": "收到。你那边有什么具体需要我配合的，直接说就行。",
+    "farewell": "好，有事随时打。",
+    "response_delay": "1-3秒（模拟思考）",
+    "personality": "简短、专业、配合。不废话，不给方向性建议。是一个资源接口，不是导师。"
+  },
+
+  "dialogs": [
+    {
+      "id": "unlock_bank",
+      "match": ["银行.*权限|银行.*查询|银行.*系统|开通.*银行|银行.*登录"],
+      "priority": 10,
+      "prerequisite": null,
+      "response": "可以。我帮你开通银行调查系统的临时权限。\n地址是 bank-sec.donghai.internal\n账号 eda_inv\n密码 Tmp@2041case001\n权限范围是本案相关的客户信息和交易流水。",
+      "triggers_unlock": "bank_system",
+      "follow_up": "你可以查客户信息、交易流水，还有受影响客户名单。"
+    },
+    {
+      "id": "request_email_info",
+      "match": ["lz_tech|163邮箱|lz_tech@163|邮箱.*查|查.*邮箱|邮箱.*信息|邮箱.*调取"],
+      "priority": 10,
+      "prerequisite": null,
+      "response_immediate": "好，我帮你向网易那边提交调取申请。稍等一下。",
+      "response_delay_seconds": 5,
+      "response_followup": "资料到了。注册手机 138-2771-9403，登录 IP 都在深圳南山。还有发件记录，03-15 那天群发了一千多封邮件。完整资料发到你系统里了。",
+      "triggers_unlock": "email_account"
+    },
+    {
+      "id": "request_telecom_138",
+      "match": ["138-2771-9403|13827719403"],
+      "priority": 15,
+      "prerequisite": null,
+      "context_check": "玩家是否同时提到了'通信|通话|记录|调取'",
+      "response_if_context_yes": "好，138-2771-9403 的通信记录我帮你走运营商调取。稍等。",
+      "response_if_context_no": "你要查这个号码什么？通话记录还是别的？",
+      "response_delay_seconds": 6,
+      "response_followup": "通信记录调到了。你去系统里查就行。通话、短信、流量都有。",
+      "triggers_unlock": "telecom_138"
+    },
+    {
+      "id": "request_telecom_189",
+      "match": ["189-7654-3210|18976543210"],
+      "priority": 15,
+      "prerequisite": null,
+      "response_check": "陆明远会追问理由",
+      "response": "这个号码是谁的？你为什么要查？",
+      "player_must_justify": true,
+      "valid_justifications": [
+        "陈芳的手机号",
+        "刘哲通话记录里出现",
+        "8847账户的联系电话",
+        "和嫌疑人有联系"
+      ],
+      "response_after_justification": "行，我帮你调。海口那边运营商，可能慢一点。",
+      "response_delay_seconds": 8,
+      "response_followup": "189 的通信记录到了。",
+      "triggers_unlock": "telecom_189"
+    },
+    {
+      "id": "request_vps",
+      "match": ["vps|VPS|服务器.*登录|服务器.*记录|vps996"],
+      "priority": 10,
+      "prerequisite": null,
+      "prerequisite_knowledge": "玩家需要已知 vps996 的存在（从邮箱发件记录或域名DNS中发现的）",
+      "response": "服务器登录记录？你是说那个 vps996 的服务器？",
+      "player_confirms": true,
+      "response_after_confirm": "好，我联系 vps996 那边调取。他们是小公司，可能要等一下。",
+      "response_delay_seconds": 7,
+      "response_followup": "VPS 登录记录到了。你看看——好像有两个不同的 IP 在登录。",
+      "triggers_unlock": "vps_records",
+      "lu_hints": true,
+      "lu_hint_note": "陆明远这里主动提了一句'两个不同的IP'——这是他作为安全工程师的本能反应，不是帮玩家分析，只是随口一说"
+    },
+    {
+      "id": "request_phone_forensics_no_evidence",
+      "match": ["手机.*取证|取证.*手机|刘哲.*手机|手机.*数据|应用.*数据|远程控制"],
+      "priority": 20,
+      "prerequisite_check": "vps_records",
+      "prerequisite_not_met_response": "手机取证是比较大的动作。你有什么具体依据认为需要查他手机里的应用？\n目前证据都指向刘哲是嫌疑人，取证方向应该是找更多犯罪证据，而不是查他手机上装了什么。",
+      "prerequisite_not_met_note": "拒绝。玩家需要先拿到 VPS 双 IP 证据。"
+    },
+    {
+      "id": "request_phone_forensics_with_evidence",
+      "match": ["手机.*取证|取证.*手机|远程控制|手机.*被控"],
+      "priority": 25,
+      "prerequisite_check": "vps_records",
+      "prerequisite_met": true,
+      "additional_match": ["武汉|两个IP|不是他操作|操作者在别处|8分钟|38小时"],
+      "response": "你是说……刘哲可能不是真正在操作的人？",
+      "player_explains": true,
+      "response_after_explanation": "我看了你发的 VPS 记录。深圳只登了 8 分钟，武汉那边操作了 38 小时……\n这确实说不通。好，刘哲现在在南山分局协助调查，手机已扣押。\n我让技术组做个取证镜像。这个要花点时间。",
+      "response_delay_seconds": 10,
+      "response_followup": "取证结果出来了。你猜怎么着——他手机上有个叫 AutoAI 的应用，权限开得非常大，后台一直在跑。完整报告发你了。",
+      "triggers_unlock": "phone_forensics"
+    },
+    {
+      "id": "request_resident_info",
+      "match": ["雄楚大道|鹏程花园|4栋1703|住户|谁住在"],
+      "priority": 15,
+      "prerequisite_check": "phone_forensics",
+      "prerequisite_not_met_response": "查住户？哪个地址？你怎么拿到的地址？",
+      "prerequisite_met_response": "武汉洪山区……这个地址你是从 AutoAI 那个截图里拿到的？\n好，我联系武汉那边的同事帮忙查。跨省协调可能要等一下。",
+      "response_delay_seconds": 12,
+      "response_followup": "武汉那边回了。鹏程花园 4 栋 1703 的承租人叫林奕辰，去年 9 月搬进去的。身份证信息和联系方式都发你了。",
+      "triggers_unlock": "resident_info"
+    },
+    {
+      "id": "ask_progress",
+      "match": ["进展|怎么样|有什么新的|情况"],
+      "priority": 1,
+      "response": "一切由你主导，我这边配合。有需要随时说。"
+    },
+    {
+      "id": "ask_affected_list",
+      "match": ["名单|受影响|受害者|客户列表"],
+      "priority": 8,
+      "prerequisite_check": "bank_system",
+      "prerequisite_not_met_response": "客户名单在银行系统里。你要不要先开通银行系统的权限？",
+      "prerequisite_met_response": "名单在银行系统里，你登进去就能查到。选'受影响客户名单'就行。"
+    },
+    {
+      "id": "thank_or_bye",
+      "match": ["谢谢|谢了|挂了|再见|没事了"],
+      "priority": 5,
+      "response": "好，有事再打。"
+    }
+  ]
+}

@@ -1,70 +1,95 @@
 <script lang="ts">
   import { contextState } from '$lib/state/context.svelte';
   import { inferenceState } from '$lib/state/inference.svelte';
-  import { evidenceState } from '$lib/state/evidence.svelte';
   import { gameState } from '$lib/state/game.svelte';
   import { runInference } from '$lib/engine/inference';
-  import { CASE00_STEP, CASE01_STEPS } from '$lib/engine/keywords';
+  import { runInferenceV2 } from '$lib/engine/inference-v2';
+  import { CASE00_STEP } from '$lib/engine/keywords';
+  import { loadInferenceMap, loadCase00InferenceMap, loadTextContent } from '$lib/data/loaders';
+  import type { InferenceV2Result } from '$lib/engine/inference-v2';
   import ContextInput from './ContextInput.svelte';
   import InferButton from './InferButton.svelte';
   import AnalysisOutput from './AnalysisOutput.svelte';
 
   let loading = $state(false);
+  let inferenceMap = $state<import('$lib/engine/types-v2').InferenceMapData | null>(null);
+  let case00Map = $state<import('$lib/engine/types-v2').Case00InferenceMapData | null>(null);
 
-  interface UnlockEvent {
-    evidenceId: string;
+  // Track v2 inference state for hint system
+  let lastV2Result = $state<InferenceV2Result | null>(null);
+  let previousContextHash = $state<string>('');
+
+  Promise.all([loadInferenceMap(), loadCase00InferenceMap()]).then(([im, c0]) => {
+    inferenceMap = im;
+    case00Map = c0;
+  });
+
+  function hashContext(texts: string[]): string {
+    return texts.join('|');
   }
-
-  interface Props {
-    onUnlock?: (event: UnlockEvent) => void;
-  }
-
-  let { onUnlock }: Props = $props();
 
   function handleInfer(): void {
     if (loading) return;
     if (contextState.blocks.length === 0) return;
 
     loading = true;
-
     const delay = 1000 + Math.random() * 2000;
 
-    setTimeout(() => {
+    setTimeout(async () => {
       const contextTexts = contextState.blocks.map((b) => b.text);
 
-      let stepConfig;
-      let stepIndex = -1;
       if (gameState.currentCase === 0) {
-        stepConfig = CASE00_STEP;
-      } else {
-        stepIndex = Math.min(gameState.currentStep, CASE01_STEPS.length - 1);
-        stepConfig = CASE01_STEPS[stepIndex];
-      }
-
-      const result = runInference(contextTexts, stepConfig);
-      inferenceState.addResult(result);
-
-      // Handle evidence unlock + step advancement
-      if (result.triggeredUnlock) {
-        if (result.unlockedEvidence) {
-          evidenceState.unlock(result.unlockedEvidence);
-          onUnlock?.({ evidenceId: result.unlockedEvidence });
+        // Case 00: use old inference engine
+        const result = runInference(contextTexts, CASE00_STEP);
+        inferenceState.addResult(result);
+        if (result.output.trim()) {
+          contextState.addBlock(result.output, 'output');
         }
-        // Advance step even when no evidence to unlock (e.g. step 11 → 12)
-        gameState.advanceStep();
-      }
+      } else {
+        // Case 01+: use v2 inference engine
+        if (!inferenceMap) {
+          loading = false;
+          return;
+        }
 
-      // Case closure: final step with A-grade closes the case
-      if (
-        gameState.currentCase === 1 &&
-        stepIndex === CASE01_STEPS.length - 1 &&
-        result.grade === 'A'
-      ) {
-        gameState.closeCase();
-      }
+        const currentHash = hashContext(contextTexts);
+        const didContextChange = currentHash !== previousContextHash;
+        previousContextHash = currentHash;
 
-      if (result.output.trim()) {
-        contextState.addBlock(result.output, 'output');
+        const v2Result = runInferenceV2(inferenceMap, {
+          contextTexts,
+          previousStageId: lastV2Result?.stageId,
+          previousAttemptCount: lastV2Result?.attemptCount ?? 0,
+          didContextChange,
+        });
+
+        lastV2Result = v2Result;
+
+        let outputText = v2Result.output;
+        if (v2Result.outputFile) {
+          const path = v2Result.outputFile.replace(/^content\/case01\//, '/data/content/case01/');
+          try {
+            outputText = await loadTextContent(path);
+          } catch {
+            // fallback to inline output
+          }
+        }
+
+        // Map v2 result to old InferenceResult shape for compatibility
+        inferenceState.addResult({
+          grade: v2Result.triggersCaseClose ? 'A' : 'B',
+          output: outputText,
+          triggeredUnlock: v2Result.triggersCaseClose,
+          timestamp: Date.now(),
+        });
+
+        if (v2Result.triggersCaseClose) {
+          gameState.closeCase();
+        }
+
+        if (outputText.trim()) {
+          contextState.addBlock(outputText, 'output');
+        }
       }
 
       loading = false;
@@ -73,6 +98,8 @@
 
   function handleClear(): void {
     contextState.clearBlocks();
+    lastV2Result = null;
+    previousContextHash = '';
   }
 
   function handleDeleteBlock(id: string): void {
