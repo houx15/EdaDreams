@@ -1,0 +1,60 @@
+{
+  "_meta": {
+    "description": "Case 00 推理引擎映射表。Case 00 只有一次推理（B6阶段），输入是 briefing_001.eml。",
+    "source": "从 systems/inference_engine_spec.md 第二节迁移",
+    "version": "1.0",
+    "date": "2026-04-15"
+  },
+
+  "keywords": [
+    { "keyword": ["CASE-2041-0001", "案件编号", "001"], "weight": 3, "meaning": "案件识别" },
+    { "keyword": ["钓鱼", "phishing"], "weight": 3, "meaning": "事件类型" },
+    { "keyword": ["东海银行", "东海"], "weight": 2, "meaning": "委托方" },
+    { "keyword": ["陆明远"], "weight": 1, "meaning": "对接人" },
+    { "keyword": ["1,183", "1183"], "weight": 2, "meaning": "事件规模 — 邮件数" },
+    { "keyword": ["47"], "weight": 2, "meaning": "事件规模 — 凭证泄露数", "context_hint": "需在'客户'或'受害'附近" },
+    { "keyword": ["11"], "weight": 1, "meaning": "事件规模 — 转账数", "context_hint": "需在'转账'或'账户'附近" },
+    { "keyword": ["384,000", "384000", "38万"], "weight": 2, "meaning": "事件规模 — 金额" },
+    { "keyword": ["钓鱼域名", "域名"], "weight": 1, "meaning": "证据类型" },
+    { "keyword": ["追踪", "源头"], "weight": 1, "meaning": "目标" }
+  ],
+
+  "output_levels": {
+    "A": {
+      "condition": "命中所有 weight=3 关键词 + 至少 1 个 weight=2 关键词",
+      "output_file": "analysis_001.rpt 全文（见 case00_boot.md B6 节）",
+      "description": "完整的初步分析报告"
+    },
+    "B": {
+      "condition": "命中至少 1 个 weight=3 关键词，但缺少其他",
+      "output": "案件: [未指定]\n类型: 初步分析\n\n本案涉及钓鱼攻击，但当前上下文缺少关键信息。\n\n已识别:\n  · 事件类型: 凭证钓鱼攻击\n  · 事件规模: [数据不足]\n  · 委托方: [数据不足]\n  · 已有证据: [数据不足]\n\n建议补充案件编号、规模数据和证据清单后重新推理。",
+      "description": "不完整分析，缺失部分标为数据不足"
+    },
+    "C": {
+      "condition": "未命中任何 weight=3 关键词",
+      "output": "当前上下文信息不足，无法得出有效结论。请补充相关证据。",
+      "description": "失败"
+    },
+    "empty": {
+      "condition": "context 为空",
+      "output": "上下文为空，无可推理内容。"
+    }
+  },
+
+  "noise_words": [
+    {
+      "keyword": ["祝工作顺利", "欢迎上线"],
+      "effect": "输出末尾多一段'感谢委托方信任'的客套段落"
+    },
+    {
+      "keyword": ["ops@eda.sec", "eda@eda.sec"],
+      "effect": "输出中多花篇幅分析邮件头，减少对案件本身的分析"
+    },
+    {
+      "keyword": ["Tier-1", "运营方"],
+      "effect": "输出多一段关于权限说明的冗余文字"
+    }
+  ],
+
+  "noise_design_intent": "噪音不阻止推理成功，但让输出变啰嗦、重点不突出。玩家反复推理后会悟出'塞没用的东西会让 Eda 跑偏'。"
+}

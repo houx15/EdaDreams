@@ -1,0 +1,117 @@
+AutoAI 操作日志
+提取自: 刘哲手机取证镜像
+路径: /data/data/com.autoai.assistant/logs/task_log.db
+导出格式: 纯文本
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+[2041-03-08 20:15:03] INIT
+  status: 安装完成
+  action: 等待远程初始化指令
+
+[2041-03-08 20:16:22] CONFIG
+  status: 收到远程配置包
+  action: 连接控制端 → OK
+  control_endpoint: [加密]
+
+[2041-03-10 14:22:08] TASK_EXEC
+  task_id: T-001
+  action: 启动浏览器 → 访问 wanwang.aliyun.com → 登录 → 注册域名
+  input: donghai-verify.cn
+  duration: 5 min 42 sec
+  status: 成功
+
+[2041-03-10 14:28:15] TASK_COMPLETE
+  task_id: T-001
+  result: donghai-verify.cn 注册成功
+  screenshot: capture_0310_1428.png
+
+[2041-03-11 09:10:33] TASK_EXEC
+  task_id: T-002
+  action: 启动浏览器 → 访问 wanwang.aliyun.com → 登录 → 注册域名
+  input: donghai-secure.cn
+  duration: 4 min 11 sec
+  status: 成功
+
+[2041-03-11 09:14:50] TASK_COMPLETE
+  task_id: T-002
+  result: donghai-secure.cn 注册成功
+  screenshot: capture_0311_0914.png
+
+[2041-03-12 10:15:07] TASK_EXEC
+  task_id: T-003
+  action: 启动浏览器 → 访问 wanwang.aliyun.com → 登录 → 注册域名
+  input: donghai-safety.cn
+  duration: 3 min 28 sec
+  status: 成功
+
+[2041-03-12 10:18:41] TASK_COMPLETE
+  task_id: T-003
+  result: donghai-safety.cn 注册成功
+  screenshot: capture_0312_1018.png
+
+[2041-03-13 11:30:15] TASK_EXEC
+  task_id: T-004
+  action: 启动网易邮箱 → 登录 lz_tech@163.com → 撰写邮件 → 发送
+  recipient: admin@vps996.com
+  subject: Re: 服务器续费 — 订单 #VPS-20410228
+  duration: 2 min 05 sec
+  status: 成功
+
+[2041-03-14 22:30:11] TASK_EXEC
+  task_id: T-005
+  action: 启动网易邮箱 → 登录 lz_tech@163.com
+  duration: 1 min 12 sec
+  status: 成功
+  note: 登录验证
+
+[2041-03-14 22:15:44] REMOTE_SCREEN
+  type: 远程屏幕共享（控制端 → 本机）
+  duration: 8 sec
+  action: 自动截图保存
+  screenshot: capture_0314_2215.png
+  note: 非计划截图，由屏幕共享事件触发
+
+[2041-03-14 23:45:02] TASK_EXEC
+  task_id: T-006
+  action: 启动东海银行 APP → 登录 → 转账
+  amount: ¥500
+  from: 本机用户账户
+  to: [本机用户账户]（自转）
+  duration: 3 min 33 sec
+  status: 成功
+
+[2041-03-14 23:48:40] TASK_COMPLETE
+  task_id: T-006
+  result: 转账 ¥500 成功
+  screenshot: capture_0314_2348.png
+
+[2041-03-15 06:10:05] TASK_EXEC
+  task_id: T-007
+  action: 启动网易邮箱 → 登录 lz_tech@163.com
+  duration: 0 min 48 sec
+  status: 成功
+
+[2041-03-15 09:20:00] TASK_EXEC
+  task_id: T-008
+  action: 批量发送短信
+  count: 57 条
+  duration: 14 min 52 sec
+  status: 成功（57/57）
+
+[2041-03-15 09:22:03] TASK_EXEC
+  task_id: T-009
+  action: 启动网易邮箱 → 执行群发
+  count: 1,183 封
+  template: "[紧急] 东海银行账户异常通知"
+  duration: 47 min 15 sec
+  status: 成功（1,183/1,183）
+  screenshot: capture_0315_1009.png
+
+[2041-03-15 10:09:22] TASK_COMPLETE
+  task_id: T-009
+  result: 群发完成
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+日志结束。03-15 10:09 后无新任务记录。

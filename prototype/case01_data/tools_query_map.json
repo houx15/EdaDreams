@@ -1,0 +1,406 @@
+{
+  "_meta": {
+    "description": "所有工具的 输入→输出 映射表。coder 用这个实现'玩家查 X → 返回 Y'。",
+    "matching_rule": "关键词模糊匹配。match 数组中任一项出现在玩家输入中即命中。优先匹配 match 更精确的条目。",
+    "default_rule": "所有工具都有 _default 条目，未命中任何预设时返回。"
+  },
+
+  "whois": {
+    "_tool_info": {
+      "name": "域名备案/WHOIS 查询",
+      "url": "whois.cnnic-query.cn",
+      "input_type": "域名",
+      "found_via": "交接笔记 或 搜索引擎搜'域名查询'"
+    },
+    "queries": [
+      {
+        "match": ["donghai-verify.cn", "donghai-verify"],
+        "result": {
+          "域名": "donghai-verify.cn",
+          "注册日期": "2041-03-10",
+          "到期日期": "2042-03-10",
+          "状态": "clientHold（已被注册商暂停解析）",
+          "注册人": "刘哲",
+          "注册邮箱": "lz_tech@163.com",
+          "注册商": "阿里云（万网）",
+          "DNS": "dns1.vps996.com / dns2.vps996.com"
+        },
+        "key_clues": ["刘哲", "lz_tech@163.com", "vps996.com"]
+      },
+      {
+        "match": ["donghai-secure.cn", "donghai-secure"],
+        "result": {
+          "域名": "donghai-secure.cn",
+          "注册日期": "2041-03-11",
+          "到期日期": "2042-03-11",
+          "状态": "clientHold",
+          "注册人": "刘哲",
+          "注册邮箱": "lz_tech@163.com",
+          "注册商": "阿里云（万网）",
+          "DNS": "dns1.vps996.com / dns2.vps996.com"
+        },
+        "key_clues": ["同一注册人和邮箱"]
+      },
+      {
+        "match": ["donghai-safety.cn", "donghai-safety"],
+        "result": {
+          "域名": "donghai-safety.cn",
+          "注册日期": "2041-03-12",
+          "到期日期": "2042-03-12",
+          "状态": "serverHold（已被注册局暂停解析）",
+          "注册人": "刘哲",
+          "注册邮箱": "lz_tech@163.com",
+          "注册商": "阿里云（万网）",
+          "DNS": "dns1.vps996.com / dns2.vps996.com"
+        },
+        "key_clues": ["同一注册人和邮箱"]
+      },
+      {
+        "match": ["donghai-bank.com"],
+        "result": {
+          "域名": "donghai-bank.com",
+          "注册日期": "2018-03-01",
+          "到期日期": "2028-03-01",
+          "状态": "ok",
+          "注册人": "东海商业银行股份有限公司",
+          "注册邮箱": "it-admin@donghai-bank.com",
+          "注册商": "中国万网",
+          "DNS": "ns1.donghai-bank.com / ns2.donghai-bank.com"
+        },
+        "key_clues": ["正规域名，供玩家对比"]
+      },
+      {
+        "match": ["_default"],
+        "result": "未查询到该域名的备案信息。"
+      }
+    ]
+  },
+
+  "gsxt": {
+    "_tool_info": {
+      "name": "国家企业信用信息公示系统",
+      "url": "gsxt.gov.cn",
+      "input_type": "企业名称 / 法人姓名 / 统一信用代码",
+      "found_via": "交接笔记 或 搜索引擎搜'工商查询'"
+    },
+    "queries": [
+      {
+        "match": ["瑞泽信息技术", "瑞泽信息", "瑞泽"],
+        "results": [
+          {
+            "企业名称": "瑞泽信息技术有限公司",
+            "法人": "刘哲",
+            "成立日期": "2041-01-05",
+            "注册资本": "10万元",
+            "实缴": "0元",
+            "地址": "深圳市南山区科技园南路88号创智大厦1206室",
+            "状态": "存续",
+            "is_target": true
+          },
+          {
+            "企业名称": "瑞泽网络科技有限公司",
+            "法人": "张海波",
+            "成立日期": "2038-06-15",
+            "注册资本": "500万元",
+            "地址": "杭州市西湖区文三路XX号",
+            "状态": "存续",
+            "is_target": false,
+            "noise_note": "另一个瑞泽，噪音"
+          }
+        ]
+      },
+      {
+        "match": ["刘哲"],
+        "input_field": "法人姓名",
+        "results": [
+          {
+            "企业名称": "瑞泽信息技术有限公司",
+            "法人": "刘哲",
+            "成立日期": "2041-01-05",
+            "地址": "深圳市南山区",
+            "is_target": true
+          },
+          {
+            "企业名称": "刘哲餐饮管理有限公司",
+            "法人": "刘哲",
+            "成立日期": "2035-08-20",
+            "地址": "成都市锦江区",
+            "is_target": false,
+            "noise_note": "同名人，餐饮行业"
+          },
+          {
+            "企业名称": "深圳刘哲商贸有限公司",
+            "法人": "刘哲",
+            "成立日期": "2032-03-10",
+            "地址": "深圳市龙岗区",
+            "状态": "已注销",
+            "is_target": false,
+            "noise_note": "同名人，已注销"
+          }
+        ]
+      },
+      {
+        "match": ["_default"],
+        "results": "未查询到相关企业信息。"
+      }
+    ],
+    "detail_page": {
+      "瑞泽信息技术有限公司": {
+        "full_content_file": "content/case01/06_company_registration.txt",
+        "note": "点击搜索结果中的目标公司名进入详情页，展示完整工商登记信息"
+      }
+    }
+  },
+
+  "numquery": {
+    "_tool_info": {
+      "name": "号码归属查询",
+      "url": "numquery.telecom.cn",
+      "input_type": "手机号 / 固话号",
+      "found_via": "交接笔记 或 搜索引擎搜'号码查询'",
+      "note": "只能查公开归属信息。实名信息和通话记录需走正式调取（打电话找陆明远）"
+    },
+    "queries": [
+      {
+        "match": ["13827719403", "138-2771-9403"],
+        "result": {
+          "号码": "138-2771-9403",
+          "类型": "手机",
+          "归属地": "广东省深圳市",
+          "运营商": "中国移动",
+          "入网时间": "2041-01"
+        },
+        "key_clues": ["深圳（与IP定位交叉验证）"],
+        "not_available": "实名信息（需通信记录调取）"
+      },
+      {
+        "match": ["075588326617", "0755-8832-6617", "88326617"],
+        "result": {
+          "号码": "0755-8832-6617",
+          "类型": "固定电话",
+          "归属地": "广东省深圳市南山区",
+          "运营商": "中国电信",
+          "登记单位": "瑞泽信息技术有限公司",
+          "联系人": "刘哲"
+        },
+        "key_clues": ["瑞泽信息技术有限公司 — 企业固话公开可查"],
+        "note": "固话的企业登记信息是公开的，不需要调取"
+      },
+      {
+        "match": ["18976543210", "189-7654-3210"],
+        "result": {
+          "号码": "189-7654-3210",
+          "类型": "手机",
+          "归属地": "海南省海口市",
+          "运营商": "中国移动",
+          "入网时间": "2040-06"
+        },
+        "key_clues": ["海口（后续与陈芳关联）"]
+      },
+      {
+        "match": ["400888", "400-888"],
+        "result": {
+          "号码": "400-888-XXXX",
+          "类型": "400企业电话",
+          "归属地": "全国",
+          "登记信息": "未查询到"
+        },
+        "key_clues": ["假号码确认"]
+      },
+      {
+        "match": ["_default"],
+        "result": "请输入有效的手机号或固话号码。"
+      }
+    ]
+  },
+
+  "ip_lookup": {
+    "_tool_info": {
+      "name": "IP 归属查询",
+      "url": "多个（玩家通过搜索引擎找到）",
+      "input_type": "IP 地址",
+      "found_via": "搜索引擎搜'IP查询'或'IP归属'"
+    },
+    "queries": [
+      {
+        "match": ["118.25.76.203"],
+        "result": {
+          "IP": "118.25.76.203",
+          "归属地": "湖北省武汉市洪山区",
+          "ISP": "中国电信",
+          "类型": "家庭宽带"
+        },
+        "key_clues": ["武汉洪山区 + 家庭宽带 = 某个人家里"]
+      },
+      {
+        "match": ["113.89.45", "113.89.46"],
+        "result": {
+          "IP": "113.89.45.xx",
+          "归属地": "广东省深圳市南山区",
+          "ISP": "中国电信",
+          "类型": "家庭宽带/商业宽带"
+        },
+        "key_clues": ["深圳南山（刘哲的活动区域）"]
+      },
+      {
+        "match": ["43.154"],
+        "result": {
+          "IP": "43.154.XXX.XXX",
+          "归属地": "香港",
+          "ISP": "腾讯云",
+          "类型": "云服务器"
+        },
+        "key_clues": ["VPS 服务器所在地"]
+      },
+      {
+        "match": ["_default"],
+        "result": "未查询到该 IP 的归属信息，或输入格式有误。"
+      }
+    ]
+  },
+
+  "bank": {
+    "_tool_info": {
+      "name": "东海银行 · 安全调查协作系统",
+      "type": "database",
+      "prerequisite_lock": "bank_system",
+      "note": "需先打电话解锁。解锁后玩家拿到地址和临时账号。"
+    },
+    "query_types": ["客户信息", "交易流水", "受影响客户名单"],
+    "queries": [
+      {
+        "query_type": "客户信息",
+        "match": ["刘哲", "3301", "440381"],
+        "result_file": "content/case01/08_liuzhe_account.txt (渲染时只显示账户信息段，不显示流水段)",
+        "key_clues": ["账户尾号3301", "开户2041-01-18"]
+      },
+      {
+        "query_type": "交易流水",
+        "match": ["3301", "刘哲"],
+        "result_file": "content/case01/08_liuzhe_account.txt (渲染时只显示交易流水段)",
+        "key_clues": ["所有资金转向8847", "03-14 23:47 的 ¥500"]
+      },
+      {
+        "query_type": "受影响客户名单",
+        "match": ["名单", "受影响", "客户", "affected"],
+        "result_file": "content/case01/07_affected_clients.txt",
+        "key_clues": ["第17行刘哲 — 需要玩家自己发现，系统不标注"],
+        "note": "名单也可以通过点击菜单直接获取，不需要输入搜索词"
+      },
+      {
+        "query_type": "客户信息",
+        "match": ["8847"],
+        "result_file": "content/case01/10_account_b.txt",
+        "key_clues": ["持有人陈芳", "手机189-7654-3210"]
+      },
+      {
+        "query_type": "客户信息",
+        "match": ["陈芳"],
+        "result_file": "content/case01/10_account_b.txt",
+        "note": "和查8847返回同一条记录"
+      },
+      {
+        "query_type": "交易流水",
+        "match": ["8847", "陈芳"],
+        "result_summary": "收到来自3301共5笔¥381,500。ATM取现6次¥120,000（海口）。支付宝/微信¥180,000。加密货币¥78,000。余额¥3,500（已冻结）。",
+        "note": "这里不给完整的资金流向分析（那是推理引擎的工作），只给原始流水"
+      },
+      {
+        "match": ["_default"],
+        "result": "未查询到该客户信息，或该客户与本案无关联。"
+      }
+    ]
+  },
+
+  "telecom": {
+    "_tool_info": {
+      "name": "通信记录查询系统",
+      "type": "database",
+      "prerequisite_lock": "逐号解锁（telecom_138 / telecom_189）",
+      "note": "每个号码需要单独申请调取"
+    },
+    "queries": [
+      {
+        "match": ["13827719403", "138-2771-9403"],
+        "prerequisite_lock": "telecom_138",
+        "result_file": "content/case01/04_phone_records.txt",
+        "modifications_needed": [
+          "新增终端型号: Redmi Note 11",
+          "新增流量分应用统计: AutoAI 占 03-10至03-15 总流量的 82%",
+          "新增 03-08 一通来自未知号码的呼入（4分22秒）— 林总的初次联络"
+        ],
+        "key_clues": ["固话0755-8832-6617", "189-7654-3210", "终端是千元机", "AutoAI流量异常"]
+      },
+      {
+        "match": ["18976543210", "189-7654-3210"],
+        "prerequisite_lock": "telecom_189",
+        "result_summary": "陈芳的通信记录。与138号（刘哲）的2次通话。与多个海口号码的通话。微信流量为主。无AutoAI。",
+        "optional": true,
+        "key_clues": ["确认陈芳与刘哲有联系", "陈芳手机上没有AutoAI（她是通过微信被招募的）"]
+      },
+      {
+        "match": ["_default"],
+        "locked_response": "该号码尚未获得调取授权。请联络对接人申请。",
+        "no_data_response": "该号码无通信记录或号码格式有误。"
+      }
+    ]
+  },
+
+  "forensics": {
+    "_tool_info": {
+      "name": "手机取证结果",
+      "type": "evidence_package",
+      "prerequisite_lock": "phone_forensics",
+      "note": "解锁后一次性获得所有取证文件"
+    },
+    "files": [
+      {
+        "id": "phone_report",
+        "name": "手机取证报告（摘要）",
+        "content_summary": "设备信息 + 已安装应用列表（饿了么/抖音/微信/AutoAI）+ AutoAI权限详情 + 数据使用量",
+        "key_clues": ["AutoAI 通过 APK 手动安装（非应用商店）", "拥有无障碍+设备管理器权限", "14.2GB数据使用"]
+      },
+      {
+        "id": "autoai_log",
+        "name": "AutoAI 操作日志",
+        "content_summary": "按时间戳记录AutoAI自动执行的所有操作：注册域名、发邮件、群发短信、¥500转账等",
+        "key_clues": ["所有关键犯罪操作都是AutoAI自动执行的", "控制端地址部分解密片段: ...118.25...wuhan..."]
+      },
+      {
+        "id": "autoai_chat",
+        "name": "AutoAI 内置聊天记录",
+        "content_summary": "刘哲与'顾问'(林总)的完整对话。从'装个app赚3000'到手机被控制到被威胁。",
+        "content_file": "content/case01/autoai_chat_log.txt",
+        "key_clues": ["刘哲是被招募的人头", "3000元佣金", "林总在指挥一切", "刘哲03-15起疑但被威胁"]
+      },
+      {
+        "id": "autoai_screenshot",
+        "name": "AutoAI 截图 #0314-2215",
+        "content_summary": "控制端屏幕截图。能看到：终端SSH连接、美团外卖收货地址（洪山区雄楚大道329号鹏程花园4栋1703）、WiFi名TP-LINK_4F03",
+        "content_file": "content/case01/autoai_screenshot_desc.txt",
+        "key_clues": ["精确地址: 洪山区雄楚大道329号鹏程花园4栋1703", "WiFi名可现场验证", "终端用户名root@phish-server"]
+      }
+    ]
+  },
+
+  "police": {
+    "_tool_info": {
+      "name": "警方协查结果",
+      "prerequisite_lock": "resident_info"
+    },
+    "queries": [
+      {
+        "match": ["雄楚大道329", "鹏程花园", "4栋1703"],
+        "result": {
+          "地址": "武汉市洪山区雄楚大道329号 鹏程花园4栋1703",
+          "承租人": "林奕辰",
+          "身份证": "420106199307XXXXXX",
+          "性别": "男",
+          "登记日期": "2040-09-15（租房）",
+          "联系电话": "155-2771-XXXX"
+        },
+        "key_clues": ["林奕辰 — 真犯身份锁定"]
+      }
+    ]
+  }
+}

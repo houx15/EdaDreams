@@ -1,0 +1,186 @@
+{
+  "_meta": {
+    "description": "推理引擎映射表 v3。玩家把信息放进 context 点推理 → 引擎根据 context 中的信息组合生成分析+方向建议。",
+    "role": "推理不触发任何解锁。它只帮玩家整理信息和提示方向。玩家要自己去执行。",
+    "matching_rule": "扫描 context 中所有 block 的文本，检查 required_keywords 是否被命中。按命中最多的 stage 生成输出。",
+    "output_structure": "每个 stage 的输出分两段：一、分析发现 二、判断。不主动给'建议调查方向'。",
+    "hint_system": {
+      "description": "三档提示系统。根据玩家在同一 stage 推理的次数递增提示力度。",
+      "tier_1": "第 1-2 次推理：纯分析。Eda 只总结发现和指出矛盾，不给下一步建议。",
+      "tier_2": "第 3 次推理：分析 + 隐晦暗示。在分析末尾加一句含蓄的线索指向。",
+      "tier_3": "第 4 次及以上：分析 + 明确建议。告诉玩家具体可以做什么。",
+      "counter_reset": "玩家的 context 内容发生实质变化时（增删 block），计数器重置。只有相同 context 反复推理才累加。"
+    }
+  },
+
+  "stages": [
+    {
+      "id": "stage_0_empty",
+      "name": "空 context",
+      "condition": "context 为空",
+      "output": "上下文为空，无可推理内容。"
+    },
+    {
+      "id": "stage_1_briefing_only",
+      "name": "只有 briefing 信息",
+      "required_keywords": ["钓鱼|phishing", "东海银行|东海"],
+      "absent_keywords": ["donghai-verify|域名"],
+      "output_analysis": "本案为针对东海银行客户的凭证钓鱼攻击。1,183 人收到钓鱼邮件，47 人输入凭证，累计损失约 ¥384,000。目前仅有案件概述，尚无技术层面的线索。",
+      "hints_by_attempt": {
+        "1-2": "",
+        "3": "简报附件中应有更具体的材料。",
+        "4+": "建议阅读附件中的钓鱼邮件样本，寻找攻击者留下的域名、发件地址等线索。"
+      }
+    },
+    {
+      "id": "stage_2_have_domain",
+      "name": "发现了钓鱼域名但未查询",
+      "required_keywords": ["donghai-verify|donghai-secure|donghai-safety"],
+      "absent_keywords": ["lz_tech|刘哲|注册人"],
+      "output_analysis": "钓鱼邮件中的链接指向域名 donghai-verify.cn。该域名不属于东海银行官方资产（官方域名为 donghai-bank.com）。",
+      "hints_by_attempt": {
+        "1-2": "",
+        "3": "域名的注册信息通常是公开可查的。",
+        "4+": "建议通过 WHOIS 查询获取该域名的注册人和注册邮箱。"
+      }
+    },
+    {
+      "id": "stage_3_have_registrant",
+      "name": "知道注册人刘哲和邮箱",
+      "required_keywords": ["刘哲", "lz_tech|163"],
+      "absent_keywords": ["138-2771|手机号|深圳南山"],
+      "output_analysis": "三个钓鱼域名均由同一人注册：注册人刘哲，注册邮箱 lz_tech@163.com。短时间内注册多个仿冒域名，说明攻击是有计划的。目前已知的身份线索：一个姓名和一个邮箱。",
+      "hints_by_attempt": {
+        "1-2": "",
+        "3": "邮箱的注册信息可能包含更多身份线索。",
+        "4+": "建议通过官方渠道调取邮箱 lz_tech@163.com 的注册信息。同时可以查询'刘哲'的工商登记记录。"
+      }
+    },
+    {
+      "id": "stage_4_have_phone",
+      "name": "知道手机号",
+      "required_keywords": ["138-2771-9403|13827719403"],
+      "absent_keywords": ["0755-8832|通话记录|瑞泽"],
+      "output_analysis": "邮箱 lz_tech@163.com 的注册手机为 138-2771-9403，登录 IP 均位于深圳南山区。邮箱、域名、IP 三条线索目前汇聚到同一个人在深圳南山的活动。",
+      "hints_by_attempt": {
+        "1-2": "",
+        "3": "手机号可以查到更多信息。",
+        "4+": "建议查询该手机号的归属信息，并申请调取通信记录。"
+      }
+    },
+    {
+      "id": "stage_5_have_company",
+      "name": "知道瑞泽公司",
+      "required_keywords": ["瑞泽", "刘哲"],
+      "optional_keywords": ["壳公司|实缴.*0|共享办公"],
+      "output_analysis": "刘哲独资注册瑞泽信息技术有限公司（2041-01-05），注册资本10万实缴0元，地址为共享办公空间。\n\n时间线初步拼合：01-05 注册公司 → 01-08 注册邮箱 → 03-10 注册域名 → 03-15 发起攻击。准备期超过两个月。",
+      "hints_by_attempt": {
+        "1-2": "",
+        "3": "嫌疑人刘哲与东海银行之间是否有直接的账户关联？",
+        "4+": "建议在银行系统中查询刘哲的账户信息，以及受影响客户名单。"
+      }
+    },
+    {
+      "id": "stage_6_liuzhe_in_list",
+      "name": "发现刘哲在客户名单中",
+      "required_keywords": ["刘哲", "500|测试|03-14|23:47|名单"],
+      "output_analysis": "嫌疑人刘哲出现在受影响客户名单第 17 号。操作时间 03-14 23:47，比其他所有受害者早约 10 小时。转账金额 ¥500，远低于其他被转账客户。\n\n这符合攻击者在正式发起攻击前进行流程测试的行为模式。",
+      "hints_by_attempt": {
+        "1-2": "",
+        "3": "刘哲的银行账户可能记录了更多的资金往来。",
+        "4+": "建议调取刘哲的完整账户流水。"
+      }
+    },
+    {
+      "id": "stage_7_fund_trail",
+      "name": "发现资金流向8847",
+      "required_keywords": ["8847", "刘哲|3301"],
+      "output_analysis": "刘哲账户（尾号 3301）累计转入 ¥384,200，与受害者损失总额完全吻合。其中 ¥381,500 分 5 笔转出至同一个账户——尾号 8847。每笔转出都在资金到账后很短时间内发生。",
+      "hints_by_attempt": {
+        "1-2": "",
+        "3": "尾号 8847 的账户持有人身份尚不明确。",
+        "4+": "建议查询账户 8847 的持有人信息。"
+      }
+    },
+    {
+      "id": "stage_8_found_chenfang",
+      "name": "发现陈芳和189号码",
+      "required_keywords": ["陈芳", "8847"],
+      "optional_keywords": ["189-7654|海口"],
+      "output_analysis": "账户 8847 持有人为陈芳，身份证归属海南海口，联系电话 189-7654-3210。开户日期 2041-02-20，在攻击发起前一个月。",
+      "conditional_note": "如果 context 中同时包含通话记录中的 189 号码，则追加：'该手机号曾出现在刘哲的通话记录中——两人在 03-14 和 03-15 有过电话联系。'",
+      "hints_by_attempt": {
+        "1-2": "",
+        "3": "刘哲的公开身份背景值得关注。",
+        "4+": "建议搜索刘哲的公开信息，确认其是否具备案件所需的技术能力。"
+      }
+    },
+    {
+      "id": "stage_9_doubt_liuzhe",
+      "name": "开始怀疑刘哲",
+      "required_keywords": ["刘哲", "外卖|骑手|配送|抖音"],
+      "output_analysis": "矛盾：刘哲的公开身份为外卖骑手（饿了么深圳南山站），社交媒体全部为日常送餐内容。\n\n此人的公开背景与案件所需的技术能力（搭建钓鱼页面、配置服务器、编写群发脚本）之间存在显著落差。",
+      "hints_by_attempt": {
+        "1-2": "",
+        "3": "案件中涉及一台 VPS 服务器（vps996.com），其登录记录也许能说明问题。",
+        "4+": "建议调取 vps996.com 服务器的登录记录，核实实际操作者的 IP 来源。"
+      }
+    },
+    {
+      "id": "stage_10_dual_ip",
+      "name": "发现VPS双IP",
+      "required_keywords": ["118.25|武汉", "113.89|深圳", "VPS|vps|服务器"],
+      "output_analysis": "VPS 服务器存在两个登录来源：\n- 深圳 IP（113.89.45.72）：2 次登录，共 8 分钟\n- 武汉 IP（118.25.76.203）：7 次登录，共 38 小时 42 分\n\n全部核心操作由武汉 IP 完成。深圳 IP 的操作时长仅够完成账号密码输入。\n\n刘哲（深圳）不是 VPS 的实际操作者。存在位于武汉的第三方。",
+      "hints_by_attempt": {
+        "1-2": "",
+        "3": "如果刘哲不是操作者，他的手机上可能有外部控制的痕迹。",
+        "4+": "建议对刘哲的手机进行取证分析，查找远程控制类应用。同时可查询武汉 IP 的归属。"
+      }
+    },
+    {
+      "id": "stage_11_autoai_found",
+      "name": "发现AutoAI",
+      "required_keywords": ["AutoAI", "远程|操控|控制"],
+      "output_analysis": "刘哲手机上的 AutoAI 获取了无障碍服务和设备管理器权限，可以完全操控手机界面。\n本地日志显示：注册域名、发送邮件、群发短信、¥500 转账等操作均由 AutoAI 在后台自动执行。\n\n聊天记录显示刘哲被自称'林总'的人以 ¥3,000 佣金招募。控制端地址部分解密片段指向武汉，与 VPS 登录 IP 吻合。\n\n刘哲不是主犯。",
+      "hints_by_attempt": {
+        "1-2": "",
+        "3": "AutoAI 的本地数据中可能有控制端泄露的信息。",
+        "4+": "建议仔细检查 AutoAI 的截图记录，其中可能包含控制者的身份线索。同时查询武汉 IP 的归属。"
+      }
+    },
+    {
+      "id": "stage_12_screenshot_clue",
+      "name": "发现截图中的地址",
+      "required_keywords": ["雄楚大道|鹏程花园|4栋1703|外卖.*地址|截图"],
+      "output_analysis": "AutoAI 截图 #0314-2215 捕获了控制端屏幕。可辨认信息：\n- 终端正在 SSH 连接到钓鱼服务器（root@phish-server）\n- 美团外卖页面显示收货地址：武汉市洪山区雄楚大道329号 鹏程花园4栋1703\n- WiFi 名称 TP-LINK_4F03\n\n该地址与 VPS 登录 IP 的归属地（武汉洪山区）一致。",
+      "hints_by_attempt": {
+        "1-2": "",
+        "3": "如果能确认这个地址的居住者身份，就能锁定嫌疑人。",
+        "4+": "建议通过对接人协调武汉警方查询该地址的住户信息。"
+      }
+    },
+    {
+      "id": "stage_13_final_suspect",
+      "name": "锁定林奕辰",
+      "required_keywords": ["林奕辰"],
+      "optional_keywords": ["武汉|洪山|鹏程"],
+      "output_analysis": "嫌疑人锁定：林奕辰，武汉市洪山区鹏程花园4栋1703。\n\n网络安全专业背景（前渗透测试工程师），有能力独立完成钓鱼系统搭建和 AutoAI 远程控制框架开发。GitHub 残留项目 'auto-agent-framework' 疑为 AutoAI 原型。\n\n全案证据链完整：林奕辰（策划+技术）→ 刘哲（人头，被 AutoAI 操控）→ 陈芳（卡农）。",
+      "hints_by_attempt": {
+        "1-2": "已收集足够信息，可以生成最终分析报告。",
+        "3": "已收集足够信息，可以生成最终分析报告。",
+        "4+": "已收集足够信息，可以生成最终分析报告。"
+      },
+      "note": "这是唯一一个所有档位都给明确建议的 stage——因为玩家已经破案了，不需要再猜"
+    },
+    {
+      "id": "stage_final",
+      "name": "最终报告",
+      "required_keywords": ["林奕辰", "刘哲", "陈芳|8847", "钓鱼|donghai-verify", "AutoAI|远程控制"],
+      "min_required": 4,
+      "output": "完整五章最终分析报告",
+      "output_file": "content/case01/inference_templates/final_report.txt",
+      "triggers_case_close": true,
+      "incomplete_output": "如果 required_keywords 命中不足 4 组，生成不完整报告，缺失部分标为 [信息不足]，不触发结案。"
+    }
+  ]
+}

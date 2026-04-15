@@ -1,0 +1,341 @@
+{
+  "_meta": {
+    "description": "搜索引擎结果库。玩家输入关键词 → 返回结果列表。每条结果有标题、来源、摘要、是否有用。",
+    "matching_rule": "match 数组中任一项出现在搜索框文本中即命中。多个条目同时命中时全部返回并混合排序。",
+    "click_behavior": "标记 clickable:true 的结果，点击后在浏览器中打开对应网页/工具。"
+  },
+
+  "results": [
+    {
+      "id": "tool_whois",
+      "match": ["域名查询", "WHOIS", "whois", "域名备案", "域名注册查询"],
+      "title": "CNNIC WHOIS 查询 — 域名备案信息查询",
+      "source": "whois.cnnic-query.cn",
+      "summary": "提供 .cn / .com / .net 等域名的注册人信息、注册时间、DNS 配置查询。",
+      "useful": true,
+      "clickable": true,
+      "opens": "whois_tool"
+    },
+    {
+      "id": "tool_whois_noise",
+      "match": ["域名查询", "WHOIS", "域名"],
+      "title": "域名注册 — 万网域名购买服务",
+      "source": "wanwang.aliyun.com",
+      "summary": "阿里云旗下域名注册平台，提供 .cn/.com 等域名注册、转入、续费服务。新用户首年 ¥1 起。",
+      "useful": false,
+      "noise_note": "域名购买网站，不是查询工具"
+    },
+    {
+      "id": "tool_gsxt",
+      "match": ["工商查询", "工商信息", "企业查询", "企业信用", "营业执照查询", "公司查询"],
+      "title": "国家企业信用信息公示系统",
+      "source": "gsxt.gov.cn",
+      "summary": "全国企业信用信息公示，可按企业名称、统一社会信用代码、法人姓名查询工商登记信息。",
+      "useful": true,
+      "clickable": true,
+      "opens": "gsxt_tool"
+    },
+    {
+      "id": "tool_numquery",
+      "match": ["号码查询", "号码归属", "手机号查询", "电话查询", "归属地查询"],
+      "title": "号码归属地查询 — 全国电话号码信息",
+      "source": "numquery.telecom.cn",
+      "summary": "输入手机号或固话号码，查询归属地、运营商、号码类型等公开信息。",
+      "useful": true,
+      "clickable": true,
+      "opens": "numquery_tool"
+    },
+    {
+      "id": "tool_ip",
+      "match": ["IP查询", "IP归属", "ip查询", "ip归属", "IP地址查询"],
+      "title": "IP 归属地查询 — 全球 IP 地理定位",
+      "source": "ipquery.cn",
+      "summary": "输入 IP 地址查询地理位置、ISP、网络类型。支持 IPv4 / IPv6。",
+      "useful": true,
+      "clickable": true,
+      "opens": "ip_lookup_tool"
+    },
+
+    {
+      "id": "lu_contact",
+      "match": ["东海银行 陆明远", "陆明远 东海", "陆明远 安全"],
+      "title": "东海银行网络安全响应中心 — 团队介绍",
+      "source": "donghai-bank.com/about/security-team",
+      "summary": "东海银行网络安全响应中心成立于 2035 年，负责全行网络安全事件的监测、响应与处置。团队负责人：张伟民。高级安全工程师：陆明远（联系电话 0755-8800-1234）……",
+      "useful": true,
+      "clickable": true,
+      "page_content": "东海银行网络安全响应中心\n\n部门简介：……\n\n团队成员：\n· 张伟民 · 中心主任\n· 陆明远 · 高级安全工程师 · 0755-8800-1234\n· 王芳 · 安全分析师\n· ……",
+      "key_clue": "陆明远的电话号码 0755-8800-1234"
+    },
+    {
+      "id": "lu_article",
+      "match": ["东海银行 陆明远", "陆明远"],
+      "title": "陆明远：浅谈商业银行网络安全体系建设（2040 金融科技峰会）",
+      "source": "fintech-conference.cn/2040/speakers",
+      "summary": "东海银行高级安全工程师陆明远在 2040 金融科技峰会上发表主题演讲，分享商业银行在面对日益复杂的网络威胁时……",
+      "useful": false,
+      "noise_note": "行业文章，没有联系方式"
+    },
+
+    {
+      "id": "donghai_phishing_news",
+      "match": ["东海银行 钓鱼", "东海银行 诈骗", "东海银行 邮件"],
+      "title": "东海银行回应客户钓鱼攻击事件",
+      "source": "南方财经网 · 2041-03-17",
+      "summary": "东海商业银行今日发布声明，确认近日有客户遭遇钓鱼邮件攻击，目前已报警处理并冻结相关可疑账户……",
+      "useful": true,
+      "note": "确认事件公开，但没有调查细节"
+    },
+    {
+      "id": "donghai_old_news",
+      "match": ["东海 钓鱼", "东海 诈骗"],
+      "title": "东海信用社储户被骗 12 万元",
+      "source": "海都报 · 2039-08-22",
+      "summary": "东海农村信用社一储户称接到自称银行客服的电话后，按对方指示操作网银，损失约 12 万元……",
+      "useful": false,
+      "noise_note": "旧新闻，不同机构"
+    },
+
+    {
+      "id": "phishing_forum",
+      "match": ["donghai-verify", "donghai-verify.cn"],
+      "title": "有人遇到 donghai-verify.cn 这个钓鱼网站吗？",
+      "source": "v2ex.com · 2041-03-16",
+      "summary": "收到一封冒充东海银行的邮件，链接指向 donghai-verify.cn，打开就是个假的登录页面。已举报……",
+      "useful": true,
+      "page_content": "楼主：收到邮件让我去 donghai-verify.cn 验证身份，一看就是钓鱼。\n回复1：我也收到了，还有 donghai-secure.cn 这个变体。\n回复2：查了一下 WHOIS，这几个域名都是上周新注册的。\n回复3：已经举报给银行了。",
+      "key_clue": "论坛提到另外两个变体域名 donghai-secure.cn，引导玩家去查更多域名"
+    },
+
+    {
+      "id": "liuzhe_meituan",
+      "match": ["刘哲 深圳", "刘哲 骑手"],
+      "title": "刘哲 — 饿了么骑手风采",
+      "source": "饿了么 · 深圳南山站",
+      "summary": "刘哲 · 深圳南山站 · 月配送 847 单 · 好评率 98.2% · 2040 年度优秀骑手",
+      "useful": true,
+      "key_clue": "刘哲是外卖骑手 — 反转线索"
+    },
+    {
+      "id": "liuzhe_douyin",
+      "match": ["刘哲 深圳"],
+      "title": "深圳打工人日记 (@liuzhe_sz) · 抖音",
+      "source": "抖音",
+      "summary": "312 粉丝 · 47 个视频 · 最近发布：'下雨天送外卖真不容易😭' (2041-03-12)、'今天跑了38单💪' (2041-03-09)",
+      "useful": true,
+      "key_clue": "完全是一个普通外卖骑手的日常 — 不像黑客"
+    },
+    {
+      "id": "liuzhe_noise",
+      "match": ["刘哲 深圳"],
+      "title": "刘哲 — 深圳大学副教授 — 计算机学院",
+      "source": "szu.edu.cn",
+      "summary": "刘哲，博士，副教授，研究方向：人工智能与自然语言处理。发表论文 35 篇……",
+      "useful": false,
+      "noise_note": "同名人，大学教授"
+    },
+
+    {
+      "id": "linyichen_linkedin",
+      "match": ["林奕辰 武汉", "林奕辰"],
+      "title": "林奕辰 — 网络安全研究员 — 领英",
+      "source": "linkedin.com",
+      "summary": "自由职业 · 武汉 · 武汉某大学计算机科学与技术 · 曾任某安全公司渗透测试工程师(2018-2020)",
+      "useful": true,
+      "key_clue": "网安背景，有能力"
+    },
+    {
+      "id": "linyichen_github",
+      "match": ["林奕辰", "yichen-lin"],
+      "title": "yichen-lin — GitHub",
+      "source": "github.com/yichen-lin",
+      "summary": "最近活动：3 个月前。仓库列表中有一个已删除的项目'auto-agent-framework'（缓存残留可见描述：'A framework for remote agent...'）",
+      "useful": true,
+      "key_clue": "auto-agent-framework — AutoAI 的原型？"
+    },
+
+    {
+      "id": "vps996",
+      "match": ["vps996", "vps996.com"],
+      "title": "VPS996 — 便宜好用的香港/美国 VPS",
+      "source": "vps996.com",
+      "summary": "月付 ¥29 起，香港 CN2 线路，美国 GIA 线路，支持支付宝/微信付款。适合建站、代理、开发测试。",
+      "useful": false,
+      "noise_note": "VPS 供应商官网，没有客户信息"
+    },
+
+    {
+      "id": "autoai_appstore",
+      "match": ["AutoAI", "autoai"],
+      "title": "AutoAI — 你的智能效率助手",
+      "source": "autoai.app",
+      "summary": "让 AI 帮你处理一切繁琐事务。日程管理、自动回复、文件整理、智能提醒。下载量 200 万+，评分 4.2。",
+      "useful": true,
+      "page_content": "AutoAI\n让 AI 帮你处理一切繁琐事务\n\n功能特点：\n· 智能日程管理\n· 自动回复消息\n· 文件智能整理\n· 多平台同步\n\n用户评价：\n⭐⭐⭐⭐ '确实方便，省了不少时间'\n⭐⭐⭐ '权限要得有点多，但功能还行'\n⭐⭐⭐⭐⭐ '用了就离不开了'\n\n下载：Android / iOS",
+      "key_clue": "看起来完全正常的app — 也许有用户抱怨'权限要得多'"
+    },
+
+    {
+      "id": "pengcheng_estate",
+      "match": ["鹏程花园", "雄楚大道329"],
+      "title": "鹏程花园 — 小区信息 — 武汉安居客",
+      "source": "wuhan.anjuke.com",
+      "summary": "鹏程花园 · 洪山区雄楚大道329号 · 2005年建成 · 均价 ¥14,500/㎡ · 物业：武汉鹏程物业",
+      "useful": false,
+      "noise_note": "房产信息，确认地址存在"
+    },
+
+    {
+      "id": "fishing_literal",
+      "match": ["钓鱼"],
+      "title": "东海春季海钓攻略 — 最佳钓点推荐",
+      "source": "钓友之家 · 2041-02-10",
+      "summary": "东海海域春季水温回升，黄鱼、鲈鱼开始活跃。推荐钓点：……",
+      "useful": false,
+      "noise_note": "字面意义的钓鱼 — 幽默噪音"
+    },
+
+    {
+      "id": "phishing_howto",
+      "match": ["钓鱼邮件 怎么查", "钓鱼邮件 识别", "如何识别钓鱼"],
+      "title": "如何识别钓鱼邮件？五步教你防骗",
+      "source": "中国互联网安全中心 · 2040-11-03",
+      "summary": "钓鱼邮件通常具有以下特征：发件人地址与官方不符、链接指向可疑域名、使用紧迫语气要求立即操作……",
+      "useful": false,
+      "noise_note": "安全科普文章，没有调查价值"
+    },
+    {
+      "id": "bank_fraud_report",
+      "match": ["银行 诈骗 报警", "银行 被骗 怎么办", "网银 被盗"],
+      "title": "遭遇网银诈骗怎么办？报警指南与资金追回流程",
+      "source": "法律快车 · 2040-09-18",
+      "summary": "发现网银资金被盗后应立即：1.联系银行冻结账户 2.拨打110报警 3.保留所有转账记录和聊天截图……",
+      "useful": false,
+      "noise_note": "法律科普，对调查无帮助"
+    },
+    {
+      "id": "nanshan_techpark",
+      "match": ["南山 科技园", "深圳 科技园", "创智大厦"],
+      "title": "深圳南山科技园 — 园区简介与入驻指南",
+      "source": "南山科技园官网",
+      "summary": "南山科技园位于深圳市南山区，总面积约 6.8 平方公里，入驻企业超过 8,000 家。创智大厦位于科技园南路 88 号……",
+      "useful": false,
+      "noise_note": "确认地址存在，但没有调查线索"
+    },
+    {
+      "id": "redmi_review",
+      "match": ["Redmi Note 11", "红米 Note 11", "redmi note"],
+      "title": "Redmi Note 11 评测 — 千元机皇还是智商税？",
+      "source": "数码之家 · 2041-01-15",
+      "summary": "Redmi Note 11 搭载天玑 810 处理器，6.5 英寸 90Hz 屏，售价 ¥999 起。日常使用流畅但游戏性能一般……",
+      "useful": false,
+      "noise_note": "确认是千元机——暗示刘哲经济条件不好，不像高收入黑客"
+    },
+    {
+      "id": "autoai_review",
+      "match": ["AutoAI 安全", "AutoAI 权限", "AutoAI 评价", "AutoAI 好用吗"],
+      "title": "AutoAI 真的好用吗？用户体验一个月后的真实评价",
+      "source": "少数派 · 2041-02-08",
+      "summary": "AutoAI 的自动化功能确实方便，但权限要求过多引发隐私担忧。有用户反映安装后手机发热明显、后台流量偏高……",
+      "useful": true,
+      "key_clue": "用户吐槽'权限过多'和'后台流量偏高' — 伏笔",
+      "note": "这条对 Case 01 调查没有直接帮助，但佐证了 AutoAI 的可疑性。后续 case 会回到这条线"
+    },
+    {
+      "id": "autoai_permissions_forum",
+      "match": ["AutoAI 无障碍", "AutoAI 设备管理器"],
+      "title": "AutoAI 为什么要无障碍权限？正常 AI 助手需要这个吗？",
+      "source": "v2ex.com · 2041-03-01",
+      "summary": "楼主：装了 AutoAI 后它要开无障碍服务，说是'为了帮你自动操作其他 app'。这合理吗？回复1：正常 AI 助手不需要这个吧……",
+      "useful": true,
+      "key_clue": "网友质疑 AutoAI 的权限需求 — 佐证其可疑性"
+    },
+    {
+      "id": "email_trace",
+      "match": ["邮件 追踪", "邮件头 分析", "email header"],
+      "title": "如何通过邮件头追踪发件人？",
+      "source": "FreeBuf 安全社区 · 2040-05-22",
+      "summary": "邮件头中的 Received 字段记录了邮件的传递路径。通过分析 Received 链可以追溯邮件的真实发件服务器 IP……",
+      "useful": false,
+      "noise_note": "技术教程。对有经验的玩家是个提示（看邮件头），但不直接提供线索"
+    },
+    {
+      "id": "whois_tutorial",
+      "match": ["怎么查域名", "域名 谁注册的", "域名 查注册人"],
+      "title": "三步教你查域名注册人信息（WHOIS 使用指南）",
+      "source": "站长之家 · 2040-08-11",
+      "summary": "第一步：打开 WHOIS 查询网站（推荐 whois.cnnic-query.cn）。第二步：输入要查询的域名。第三步：查看注册人和注册邮箱……",
+      "useful": true,
+      "clickable": false,
+      "note": "间接引导玩家找到 WHOIS 工具（文章里提到了网址）"
+    },
+    {
+      "id": "shenzhen_police",
+      "match": ["深圳 报警", "南山 公安", "深圳 网络犯罪"],
+      "title": "深圳市公安局南山分局 — 办事指南",
+      "source": "深圳市公安局官网",
+      "summary": "南山分局地址：深圳市南山区桃园路 XX 号。报警电话：110。网络犯罪举报：www.cyberpolice.cn……",
+      "useful": false,
+      "noise_note": "公安信息，对 Eda 调查无直接用途"
+    },
+    {
+      "id": "wuhan_police",
+      "match": ["武汉 公安", "洪山 公安", "武汉 报警"],
+      "title": "武汉市公安局洪山区分局",
+      "source": "武汉市公安局官网",
+      "summary": "洪山区分局地址：武汉市洪山区珞喻路 XX 号。管辖范围包括关山、雄楚大道、光谷周边区域……",
+      "useful": false,
+      "noise_note": "确认洪山区的管辖范围包括雄楚大道"
+    },
+    {
+      "id": "ssh_what",
+      "match": ["SSH", "ssh 是什么", "远程登录 服务器"],
+      "title": "什么是 SSH？远程服务器管理入门",
+      "source": "菜鸟教程",
+      "summary": "SSH（Secure Shell）是一种加密网络协议，用于在不安全的网络上安全地远程登录和管理服务器……",
+      "useful": false,
+      "noise_note": "技术入门教程"
+    },
+    {
+      "id": "money_laundering",
+      "match": ["洗钱", "资金转移", "加密货币 洗钱"],
+      "title": "常见洗钱手段及识别方法 — 央行反洗钱培训材料",
+      "source": "中国人民银行 · 2040-06",
+      "summary": "常见洗钱手段包括：多层银行账户中转、ATM 分散取现、第三方支付平台拆分、加密货币购买……",
+      "useful": false,
+      "noise_note": "反洗钱科普。和案情吻合但没有调查价值"
+    },
+    {
+      "id": "donghai_bank_official",
+      "match": ["东海银行", "东海银行 官网", "东海商业银行"],
+      "title": "东海商业银行 — 官方网站",
+      "source": "donghai-bank.com",
+      "summary": "东海商业银行，成立于 1998 年，总行位于上海。个人业务、企业业务、网上银行……",
+      "useful": false,
+      "clickable": true,
+      "page_content": "东海商业银行首页。没有调查相关信息，但可以确认官方域名是 donghai-bank.com（与钓鱼域名 donghai-verify.cn 对比）",
+      "noise_note": "银行官网，无调查价值但确认了正规域名"
+    },
+    {
+      "id": "card_mule",
+      "match": ["卡农", "银行卡 出租", "帮取现 兼职"],
+      "title": "警惕！出租银行卡代取现涉嫌犯罪",
+      "source": "中国裁判文书网 · 2040-12-05",
+      "summary": "近年来大量案例显示，犯罪分子通过网络招募'卡农'，以兼职代取现的名义利用他人银行卡转移赃款……",
+      "useful": false,
+      "noise_note": "法律案例。描述了陈芳被招募的模式，但玩家搜这个说明已经懂了"
+    },
+
+    {
+      "id": "generic_fallback_1",
+      "match": ["_fallback"],
+      "title": "百度百科 — [搜索词]",
+      "source": "百度百科",
+      "summary": "[根据搜索词动态生成一句百科风格的定义]",
+      "useful": false,
+      "noise_note": "兜底噪音。任何未匹配预设的搜索都返回 1-2 条这类泛结果",
+      "implementation_note": "coder 实现时，对未命中任何预设的搜索词，随机返回 0-2 条通用噪音结果（百科词条、新闻、论坛帖等），或直接返回'未找到相关结果'"
+    }
+  ]
+}
+

@@ -35,9 +35,9 @@ EdaDreams 是一个第一人称调查解谜游戏。玩家操作一款名叫 **E
 
 **不是 LLM 实时生成。** 每步推理的输出是预写好的模板，根据关键词命中情况拼接。详见 `systems/inference_engine_spec.md`。
 
-### 3. Progressive Evidence Unlock（渐进式证据解锁）
+### 3. Active Exploration（主动探索）
 
-每一步推理的输出中包含一个触发词（人名、域名、电话号等）。系统检测到触发词后，向侧边栏推送下一份证据文件。玩家看到的效果是"我推理出了一条线索，系统顺着这条线索调来了新材料"。
+只有案件 briefing 是主动投递的。之后所有信息需要玩家自己去找：在网页工具输入域名查注册信息、打电话给对接人申请银行权限、在数据库终端查流水。搜什么、去哪搜、怎么搜——全靠玩家判断。搜错了就看到一堆无关结果或空白。推理引擎的作用是帮玩家整理已有信息并建议调查方向，不是自动投递新文件。
 
 ### 4. Capability Delegation（能力委托）
 
@@ -92,34 +92,54 @@ Case 02+           → 后续案件，逐步解锁 CMP → WEB → MEM → TOOL 
 ## 文件地图
 
 ```
-AgentDreams/
+EdaDreams/
 │
 ├── PROJECT.md                     ← 你正在读的这个文件
+├── CHANGELOG.md                   ← 版本变更日志
+├── TODO.md                        ← 待办计划
 │
-├── script/                        ← 剧本（玩家体验什么）
+├── script/                        ← 剧本与流程（玩家体验什么）
 │   ├── case00_boot.md             ← Case 00: 开机序列，8 个 beat
-│   └── case01_investigation.md    ← Case 01: 东海银行钓鱼案，12 步推理链
+│   ├── case01_narrative_v3.md     ← Case 01: 故事线（AutoAI + 反转 + 林奕辰）
+│   └── case01_flowchart_v3.md     ← Case 01: 操作流程图（23 步四幕）
+│
+├── case01_data/                   ← Case 01 数据手册（coder 直接读这些实现）
+│   ├── state_machine.json         ← 7 把锁的解锁条件与授权链
+│   ├── tools_query_map.json       ← 所有工具的 输入→输出 映射
+│   ├── search_engine.json         ← 搜索引擎结果库（17 条，含噪音）
+│   ├── lu_mingyuan_dialog.json    ← 陆明远电话对话树（12 种场景）
+│   └── inference_map.json         ← 推理引擎阶段映射（14 阶段）
 │
 ├── wireframes/                    ← 界面设计
-│   └── case00_machine.html        ← v1.0 定稿，可直接浏览器打开查看
+│   └── case00_machine.html        ← v1.0 定稿
 │
-├── content/                       ← 游戏内文本素材（玩家读到的真实文档）
-│   └── case01/
-│       ├── 01_phishing_sample.eml       ← 钓鱼邮件样本
-│       ├── 02_domain_registration.txt   ← 域名备案查询
-│       ├── 03_email_account.txt         ← 邮箱账号信息
-│       ├── 04_phone_records.txt         ← 手机号使用记录
-│       ├── 05_phone_lookup.txt          ← 号码归属查询
-│       ├── 06_company_registration.txt  ← 工商登记信息
-│       ├── 07_affected_clients.txt      ← 受影响客户名单（47人）
-│       ├── 08_liuzhe_account.txt        ← 刘哲银行流水
-│       ├── 09_fund_flow.txt             ← 资金流向分析
-│       ├── 10_account_b.txt             ← 陈芳账户信息
-│       └── 11_timeline.txt             ← 事件完整时间轴
+├── content/case01/                ← 游戏内文本素材（工具返回的原始文本）
+│   ├── 00_handover_note.txt       ← 系统备忘：交接笔记
+│   ├── 01_phishing_sample.eml     ← briefing 附件：钓鱼邮件样本
+│   ├── 03_email_account.txt       ← 邮箱信息（陆明远调取）
+│   ├── 04_phone_records.txt       ← 刘哲通信记录（运营商调取）
+│   ├── 05_phone_lookup.txt        ← 号码归属（公开查询）
+│   ├── 06_company_registration.txt ← 工商登记（公开查询）
+│   ├── 07_affected_clients.txt    ← 客户名单 47 人（银行系统）
+│   ├── 08_liuzhe_account.txt      ← 刘哲账户+流水（银行系统）
+│   ├── 10_account_b.txt           ← 陈芳账户信息（银行系统）
+│   ├── account_b_transactions.txt ← 陈芳账户流水（银行系统）
+│   ├── vps_login_records.txt      ← VPS 登录记录（服务商调取）
+│   ├── phone_forensics_report.txt ← 手机取证报告（公安技术组）
+│   ├── autoai_operation_log.txt   ← AutoAI 操作日志（取证提取）
+│   ├── autoai_chat_log.txt        ← AutoAI 聊天记录（取证提取）
+│   ├── autoai_screenshot_desc.txt ← AutoAI 截图描述（取证提取）
+│   ├── resident_info.txt          ← 住户信息（武汉警方协查）
+│   └── inference_templates/       ← 推理输出模板（Eda 生成，不是证据）
+│       ├── fund_flow_analysis.txt
+│       └── timeline.txt
 │
-└── systems/                       ← 系统设计文档（引擎怎么工作）
-    ├── inference_engine_spec.md    ← 推理引擎：关键词表、输出模板、解锁逻辑
-    └── ui_interaction_spec.md     ← UI 交互：动效、拖拽、音效、颜色
+├── systems/                       ← 系统设计文档（设计意图）
+│   ├── tools_spec.md              ← 工具系统设计意图（实现见 JSON）
+│   ├── inference_engine_spec.md   ← ⚠️ Case 01 部分已废弃，Case 00 仍有效
+│   └── ui_interaction_spec.md     ← UI 交互：动效、拖拽、音效
+│
+└── archived/                      ← 旧版文件（仅供参考）
 ```
 
 ---
@@ -128,15 +148,21 @@ AgentDreams/
 
 **如果你是第一次接触这个项目：**
 1. 本文件（PROJECT.md）—— 5 分钟，建立全局理解
-2. `wireframes/case00_machine.html` —— 浏览器打开，看界面长什么样
-3. `script/case00_boot.md` —— 15 分钟，理解开机序列和核心机制的建立
-4. `script/case01_investigation.md` —— 20 分钟，理解完整的游戏流程
-5. `systems/inference_engine_spec.md` —— 实现推理引擎时精读
-6. `systems/ui_interaction_spec.md` —— 实现 UI 时精读
-7. `content/case01/` —— 实现证据系统时逐一阅读
+2. `CHANGELOG.md` —— 3 分钟，理解设计经过了哪些迭代（从底部往上读）
+3. `wireframes/case00_machine.html` —— 浏览器打开，看界面长什么样
+4. `script/case00_boot.md` —— 15 分钟，理解开机序列和核心机制
+5. `script/case01_narrative_v3.md` —— 20 分钟，理解 Case 01 故事线（AutoAI + 反转 + 真犯）
+6. `script/case01_flowchart_v3.md` —— 10 分钟，理解玩家操作路径（23 步四幕）
+7. `case01_data/*.json` —— 实现时精读，这是你写代码的直接输入
+8. `content/case01/` —— 实现证据系统时逐一阅读
+9. `systems/ui_interaction_spec.md` —— 实现 UI 时精读
 
 **如果你只想快速了解这个游戏的体验：**
-读 case00_boot.md 的 B5–B6 节 + case01_investigation.md 的 Step 01 和 Step 07。这三段涵盖了游戏最核心的体验循环和最精彩的"啊哈时刻"。
+读 `case00_boot.md` 的 B5–B6 节（第一次推理），然后读 `case01_flowchart_v3.md` 的 Phase 0–5 + Phase 6–8（追踪→反转→真凶）。
+
+**⚠️ 不要读这些文件（已过时）：**
+- `archived/` 下的所有文件 — 旧版本，仅供参考
+- `systems/inference_engine_spec.md` 的 Case 01 部分 — 已被 `case01_data/inference_map.json` 取代
 
 ---
 
@@ -146,25 +172,28 @@ AgentDreams/
 
 1. 窗口框架（标题栏 + 三栏布局 + 状态栏）
 2. 文档阅读区（打开文件、tab 切换、文本选中）
-3. Context 面板（拖拽放入、百分比计算、删除 block）
-4. 推理引擎（关键词匹配 → A 级输出 → 触发词检测 → 证据解锁）
-5. Case 00 boot 序列（可简化动效，保留文本内容）
-6. Case 01 全 12 步流程
+3. 浏览器模拟（地址栏 + 网页 tab + 搜索结果渲染）
+4. 电话系统（拨号 + 文字化通话 + NPC 关键词匹配）
+5. 数据库查询界面（银行系统 + 通信记录）
+6. Context 面板（拖拽放入、百分比计算、删除 block）
+7. 推理引擎（关键词匹配 → A 级输出 → 方向建议）
+8. Case 00 boot 序列（可简化动效，保留文本内容）
+9. Case 01 全探索流程（工具 + 搜索结果 + NPC 对话 + 结案）
 
 ### P1 — 好玩
 
-7. Boot 动效（扫描线、token 候选闪烁）
-8. 推理 B/C 级输出变体
-9. 噪音稀释效果
-10. 音效
-11. 命令行系统（`/help`、`/exit` + 隐藏成就）
+10. Boot 动效（扫描线、token 候选闪烁）
+11. 搜索噪音结果库（让搜索更真实）
+12. 推理 B/C 级输出变体
+13. 音效
+14. 命令行系统（`/help`、`/exit` + 隐藏成就）
 
 ### P2 — 完整
 
-12. Case 02+ 内容
-13. 能力委托系统（CMP、WEB 等灯的点亮流程）
-14. 结局序列
-15. 存档/读档
+15. Case 02+ 内容
+16. 能力委托系统（CMP、WEB 等灯的点亮流程）
+17. 结局序列
+18. 存档/读档
 
 ---
 

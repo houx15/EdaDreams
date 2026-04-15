@@ -1,9 +1,12 @@
-# 推理引擎规格书 — Case 00 + Case 01
+# ⚠️ 已废弃 — 推理引擎规格书 v1
 
-> EdaDreams · 系统设计文档 · v1 · 2026-04-13
+> **本文件的 Case 01 部分已废弃。** Case 01 的推理引擎实现规格已迁移至 `case01_data/inference_map.json`。
+> v1 使用的"触发词 → 自动解锁证据"机制已被"方向建议"机制取代（详见 CHANGELOG.md v2 条目）。
 >
-> 本文件供 coder 实现推理引擎。定义：每一步推理的 context 关键词权重、
-> 输出生成规则、解锁触发条件、以及不同 context 质量对应的输出变体。
+> **Case 00 部分仍然有效。** Case 00 的推理关键词表（第二节）尚未迁移到 JSON，可继续参考。
+> 后续应迁移至 `case00_data/inference_map.json`。
+>
+> 原文件信息：EdaDreams · 系统设计文档 · v1 · 2026-04-13
 
 ---
 
