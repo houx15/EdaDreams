@@ -1,7 +1,10 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
   import { evidenceManagerV2 } from '$lib/state/evidence-v2.svelte';
   import { MEMO_EVIDENCE } from '$lib/data/evidence-factory';
   import type { EvidenceItem } from '$lib/engine/types';
+  import { getSharedStateMachine } from '$lib/state/state-machine-shared';
+  import type { StateMachine } from '$lib/engine/state-machine';
 
   interface Props {
     onSelect?: (item: EvidenceItem, action: 'open' | 'browser' | 'phone') => void;
@@ -12,6 +15,18 @@
   let evidenceExpanded = $state(true);
   let memoExpanded = $state(false);
   let toolsExpanded = $state(false);
+
+  let stateMachine: StateMachine | null = $state(null);
+
+  const toolLocks = $derived(
+    stateMachine ? {
+      bank_system: stateMachine.isUnlocked('bank_system'),
+    } : {}
+  );
+
+  onMount(async () => {
+    stateMachine = await getSharedStateMachine();
+  });
 
   const unlockedEvidence = $derived(evidenceManagerV2.getAll());
   const memoItems = $derived([MEMO_EVIDENCE].filter((m) => evidenceManagerV2.isUnlocked(m.id)));
@@ -56,6 +71,11 @@
 
   function handlePhoneClick(): void {
     onSelect?.(MEMO_EVIDENCE, 'phone');
+  }
+
+  function handleBankToolClick(): void {
+    if (!stateMachine?.isUnlocked('bank_system')) return;
+    onSelect?.(MEMO_EVIDENCE, 'browser');
   }
 </script>
 
@@ -159,6 +179,23 @@
   >
     <span class="ico">☎</span>
     通话
+  </div>
+
+  <div
+    class="nav-item tool-locked"
+    class:tool-unlocked={toolLocks.bank_system}
+    onclick={handleBankToolClick}
+    role="button"
+    tabindex="0"
+    onkeydown={(e) => e.key === 'Enter' && handleBankToolClick()}
+  >
+    <span class="ico">🏦</span>
+    银行系统
+    {#if !toolLocks.bank_system}
+      <span class="lock-icon">🔒</span>
+    {:else}
+      <span class="lock-icon">✅</span>
+    {/if}
   </div>
 </div>
 
@@ -282,5 +319,18 @@
   .evidence-meta {
     font-size: 9px;
     color: rgba(255, 255, 255, 0.4);
+  }
+
+  .tool-locked {
+    opacity: 0.5;
+    cursor: not-allowed !important;
+  }
+  .tool-unlocked {
+    opacity: 1;
+    cursor: pointer;
+  }
+  .lock-icon {
+    margin-left: auto;
+    font-size: 10px;
   }
 </style>

@@ -71,7 +71,11 @@ import { getEvidenceContent, clearEvidenceContentCache } from '$lib/state/eviden
     }
 
     if (openTabs.length >= MAX_TABS) {
-      return;
+      const removed = openTabs[0];
+      openTabs = openTabs.slice(1);
+      if (activeTab?.id === removed.id) {
+        activeTab = openTabs[0] || null;
+      }
     }
 
     const file = await loadEvidenceContent(item);
@@ -92,7 +96,13 @@ import { getEvidenceContent, clearEvidenceContentCache } from '$lib/state/eviden
       return;
     }
 
-    if (openTabs.length >= MAX_TABS) return;
+    if (openTabs.length >= MAX_TABS) {
+      const removed = openTabs[0];
+      openTabs = openTabs.slice(1);
+      if (activeTab?.id === removed.id) {
+        activeTab = openTabs[0] || null;
+      }
+    }
 
     const newTab: WorkbenchTab = {
       id: `browser_${Date.now()}`,
@@ -111,7 +121,13 @@ import { getEvidenceContent, clearEvidenceContentCache } from '$lib/state/eviden
       return;
     }
 
-    if (openTabs.length >= MAX_TABS) return;
+    if (openTabs.length >= MAX_TABS) {
+      const removed = openTabs[0];
+      openTabs = openTabs.slice(1);
+      if (activeTab?.id === removed.id) {
+        activeTab = openTabs[0] || null;
+      }
+    }
 
     const newTab: WorkbenchTab = {
       id: `phone_${Date.now()}`,
