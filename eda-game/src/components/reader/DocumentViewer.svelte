@@ -6,6 +6,22 @@
   }
 
   let { evidence }: Props = $props();
+  let selectedText = $state('');
+
+  function handleMouseUp() {
+    const selection = window.getSelection()?.toString() || '';
+    selectedText = selection;
+  }
+
+  function handleDragStart(e: DragEvent) {
+    const text = selectedText || window.getSelection()?.toString() || '';
+    if (text) {
+      e.dataTransfer?.setData('text/plain', text);
+      e.dataTransfer!.effectAllowed = 'copy';
+    } else {
+      e.preventDefault();
+    }
+  }
 
   function parseContent(content: string): { meta: string[]; title: string; body: string } {
     const lines = content.split('\n');
@@ -79,7 +95,14 @@
       {/if}
     </div>
     <div class="doc-title-line">{parsed.title || evidence.filename}</div>
-    <div class="doc-body selectable" role="textbox" tabindex="-1">{parsed.body || evidence.content}</div>
+    <div
+    class="doc-body selectable"
+    role="textbox"
+    tabindex="-1"
+    draggable={!!selectedText}
+    onmouseup={handleMouseUp}
+    ondragstart={handleDragStart}
+  >{parsed.body || evidence.content}</div>
   {:else}
     <div class="empty-state">
       <div class="empty-icon">📄</div>
@@ -119,6 +142,12 @@
     line-height: 1.8;
     white-space: pre-wrap;
     color: var(--text);
+    cursor: text;
+    user-select: text;
+  }
+
+  .doc-body:active {
+    cursor: text;
   }
   .empty-state {
     height: 100%;

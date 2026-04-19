@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { ContextBlock as ContextBlockType, CapacityInfo } from '$lib/engine/types';
+  import { contextState } from '$lib/state/context.svelte';
   import CapacityBar from './CapacityBar.svelte';
   import ContextBlock from './ContextBlock.svelte';
 
@@ -14,6 +15,9 @@
   let hasShownCapacityWarning = $state(false);
   let showCapacityWarning = $state(false);
   let warningTimeout: ReturnType<typeof setTimeout> | null = null;
+  let isDragOver = $state(false);
+  let showOverflowMessage = $state(false);
+  let overflowTimeout: ReturnType<typeof setTimeout> | null = null;
 
   $effect(() => {
     const pct = capacity.percentage;
@@ -26,9 +30,44 @@
       }, 3000);
     }
   });
+
+  function handleDragOver(e: DragEvent) {
+    e.preventDefault();
+    e.dataTransfer!.dropEffect = 'copy';
+    isDragOver = true;
+  }
+
+  function handleDragLeave() {
+    isDragOver = false;
+  }
+
+  function handleDrop(e: DragEvent) {
+    e.preventDefault();
+    isDragOver = false;
+    const text = e.dataTransfer?.getData('text/plain');
+    if (!text || !text.trim()) return;
+
+    if (contextState.canAddBlock(text)) {
+      contextState.addBlock(text, 'evidence');
+    } else {
+      showOverflowMessage = true;
+      if (overflowTimeout) clearTimeout(overflowTimeout);
+      overflowTimeout = setTimeout(() => {
+        showOverflowMessage = false;
+      }, 2000);
+    }
+  }
 </script>
 
-<div class="inf-context">
+<div
+  class="inf-context"
+  class:drag-over={isDragOver}
+  role="region"
+  aria-label="上下文输入区域"
+  ondragover={handleDragOver}
+  ondragleave={handleDragLeave}
+  ondrop={handleDrop}
+>
   <div class="panel-header">
     <span class="indicator on"></span>
     上下文输入
@@ -41,6 +80,11 @@
     {#if showCapacityWarning}
       <div class="capacity-warning">
         ⚠ 上下文容量已达 {Math.round(capacity.percentage)}% · Eda 的处理窗口有限，需精选关键信息
+      </div>
+    {/if}
+    {#if showOverflowMessage}
+      <div class="overflow-message">
+        CONTEXT OVERFLOW
       </div>
     {/if}
     {#each blocks as block (block.id)}
@@ -116,6 +160,22 @@
     padding: 4px 8px;
     margin-bottom: 4px;
     animation: fadeIn 0.2s ease-out;
+  }
+
+  .overflow-message {
+    font-family: 'SF Mono', 'Consolas', 'Monaco', monospace;
+    font-size: 10px;
+    color: var(--red);
+    background: #fff5f5;
+    border-left: 3px solid var(--red);
+    padding: 4px 8px;
+    margin-bottom: 4px;
+    animation: fadeIn 0.2s ease-out;
+  }
+
+  .inf-context.drag-over {
+    border: 2px dashed #4a9eff;
+    background: rgba(74, 158, 255, 0.05);
   }
 
   @keyframes fadeIn {

@@ -47,6 +47,12 @@ class ContextManager {
   blocks = $state<ContextBlock[]>([]);
   caseMaxTokens = $state<number>(1500);
 
+  canAddBlock(text: string): boolean {
+    const tokenCount = countTokens(text);
+    const currentTotal = this.totalTokens;
+    return currentTotal + tokenCount <= this.caseMaxTokens;
+  }
+
   addBlock(
     text: string,
     source: 'evidence' | 'output',

@@ -73,6 +73,35 @@ describe('ContextManager', () => {
     });
   });
 
+  describe('canAddBlock', () => {
+    it('given empty context, when checking if a small block can be added, then it returns true', () => {
+      expect(contextState.canAddBlock('hello world')).toBe(true);
+    });
+
+    it('given context near capacity, when checking a block that would fit, then it returns true', () => {
+      contextState.addBlock('a'.repeat(1400), 'evidence');
+      expect(contextState.canAddBlock('a'.repeat(50))).toBe(true);
+    });
+
+    it('given context near capacity, when checking a block that would overflow, then it returns false', () => {
+      contextState.addBlock('a'.repeat(1400), 'evidence');
+      expect(contextState.canAddBlock('a'.repeat(200))).toBe(false);
+    });
+
+    it('given context at exactly 100% capacity, when checking any block, then it returns false', () => {
+      contextState.addBlock('a'.repeat(1500), 'evidence');
+      expect(contextState.canAddBlock('x')).toBe(false);
+    });
+
+    it('given mixed Chinese and ASCII text, when checking capacity, then token count is calculated correctly', () => {
+      contextState.addBlock('a'.repeat(1400), 'evidence');
+      // '东海银行' = 8 tokens, 1400 + 8 = 1408 <= 1500
+      expect(contextState.canAddBlock('东海银行')).toBe(true);
+      // 'a'.repeat(200) = 200 tokens, 1400 + 200 = 1600 > 1500
+      expect(contextState.canAddBlock('a'.repeat(200))).toBe(false);
+    });
+  });
+
   describe('addBlock — capacity and overflow', () => {
     it('given blocks under capacity, when adding a block, then it succeeds and blocks array grows', () => {
       contextState.addBlock('short', 'evidence');
