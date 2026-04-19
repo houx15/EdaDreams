@@ -114,6 +114,7 @@
       "source": "饿了么 · 深圳南山站",
       "summary": "刘哲 · 深圳南山站 · 月配送 847 单 · 好评率 98.2% · 2040 年度优秀骑手",
       "useful": true,
+      "page_content": "刘哲 — 饿了么骑手风采\n\n站点: 深圳南山站\n月配送: 847 单\n好评率: 98.2%\n加入时间: 2040-03\n2040 年度优秀骑手\n\n最近配送:\n· 03-15 完成 38 单 · 好评率 100%\n· 03-14 完成 42 单 · 好评率 100%\n· 03-13 完成 35 单 · 好评率 97%",
       "key_clue": "刘哲是外卖骑手 — 反转线索"
     },
     {
@@ -123,6 +124,7 @@
       "source": "抖音",
       "summary": "312 粉丝 · 47 个视频 · 最近发布：'下雨天送外卖真不容易😭' (2041-03-12)、'今天跑了38单💪' (2041-03-09)",
       "useful": true,
+      "page_content": "深圳打工人日记 (@liuzhe_sz)\n\n312 粉丝 · 47 个视频\n\n最近发布:\n· '下雨天送外卖真不容易😭' (03-12)\n· '今天跑了38单💪' (03-09)\n· '周末加鸡腿！' (03-07)\n\n评论区热门:\n\"哲哥加油！\"\n\"南山站最努力的骑手\"",
       "key_clue": "完全是一个普通外卖骑手的日常 — 不像黑客"
     },
     {
@@ -142,6 +144,7 @@
       "source": "linkedin.com",
       "summary": "自由职业 · 武汉 · 武汉某大学计算机科学与技术 · 曾任某安全公司渗透测试工程师(2018-2020)",
       "useful": true,
+      "page_content": "林奕辰\n网络安全研究员 · 自由职业\n\n所在地: 武汉\n教育: 武汉某大学 · 计算机科学与技术 · 硕士\n\n工作经历:\n· 渗透测试工程师 · 某安全公司 · 2018-2020\n  负责企业内网渗透测试、红蓝对抗、漏洞挖掘\n· 自由职业 · 2020-至今\n  网络安全咨询、安全审计、渗透测试\n\n技能:\n渗透测试 · Python · 网络协议分析 · 社会工程学 · 移动安全\n\n联系人: 180+",
       "key_clue": "网安背景，有能力"
     },
     {
@@ -151,6 +154,7 @@
       "source": "github.com/yichen-lin",
       "summary": "最近活动：3 个月前。仓库列表中有一个已删除的项目'auto-agent-framework'（缓存残留可见描述：'A framework for remote agent...'）",
       "useful": true,
+      "page_content": "yichen-lin\n\nJoined: 2017\nLast active: 3 months ago\n\nPublic repositories: 5\n\nProjects:\n· auto-agent-framework [已删除] (缓存残留)\n  描述: 'A framework for remote agent control via mobile devices'\n  语言: Python/Kotlin\n  Stars: 47 (at time of deletion)\n  Forks: 3\n\n· network-toolkit\n  描述: 'Common network utilities'\n  语言: Python\n  Stars: 12\n\n· exploit-lab\n  描述: 'Personal exploit research'\n  语言: Python\n  Stars: 8\n\nContributions: 1,200+ (all time)",
       "key_clue": "auto-agent-framework — AutoAI 的原型？"
     },
 
