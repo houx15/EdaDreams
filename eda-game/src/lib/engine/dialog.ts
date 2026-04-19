@@ -1,19 +1,11 @@
-import type { LuMingyuanDialogData, DialogEntry, DialogMessage } from '$lib/engine/types-v2';
+import type {
+  LuMingyuanDialogData,
+  DialogEntry,
+  DialogMessage,
+  DialogTurnResult,
+  PendingAction,
+} from '$lib/engine/types-v2';
 import type { StateMachine } from './state-machine';
-
-export type PendingActionType = 'justify' | 'confirm' | 'explain';
-
-export interface PendingAction {
-  type: PendingActionType;
-  dialogId: string;
-}
-
-export interface DialogTurnResult {
-  messages: DialogMessage[];
-  triggeredUnlock?: string;
-  pendingAction?: PendingAction;
-  isEnded?: boolean;
-}
 
 function matchesDialog(message: string, entry: DialogEntry): boolean {
   const normalized = message.toLowerCase();
@@ -133,6 +125,32 @@ export class DialogEngine {
         continue;
       }
 
+      if (entry.context_check) {
+        const keywords = this.parseContextCheckKeywords(entry.context_check);
+        const hasContext = keywords.some((kw) => playerMessage.toLowerCase().includes(kw.toLowerCase()));
+
+        if (hasContext) {
+          const immediateMsg = entry.response_if_context_yes || '';
+          const messages: DialogMessage[] = immediateMsg ? [this.createLuMessage(immediateMsg)] : [];
+
+          if (entry.response_delay_seconds && entry.response_followup && entry.triggers_unlock) {
+            return {
+              messages,
+              delayedFollowup: {
+                delaySeconds: entry.response_delay_seconds,
+                followupMessage: entry.response_followup,
+                unlockOnComplete: entry.triggers_unlock,
+              },
+            };
+          }
+          return { messages };
+        } else {
+          return {
+            messages: [this.createLuMessage(entry.response_if_context_no || '你要查什么？')],
+          };
+        }
+      }
+
       if (entry.player_must_justify) {
         this.pendingAction = { type: 'justify', dialogId: entry.id };
         return {
@@ -219,10 +237,11 @@ export class DialogEngine {
   ): DialogTurnResult {
     const messages: DialogMessage[] = [];
     let triggeredUnlock: string | undefined;
+    let delayedFollowup: DialogTurnResult['delayedFollowup'];
 
     const baseResponse = useAfterResponse
-      ? entry.response_after_explanation || entry.response_after_justification || entry.response_after_confirm || entry.response || ''
-      : entry.response || '';
+      ? entry.response_after_explanation || entry.response_after_justification || entry.response_after_confirm || ''
+      : entry.prerequisite_met_response || entry.response_immediate || entry.response || '';
 
     if (baseResponse) {
       messages.push(this.createLuMessage(baseResponse));
@@ -232,14 +251,28 @@ export class DialogEngine {
       messages.push(this.createLuMessage(entry.follow_up));
     }
 
-    if (entry.triggers_unlock) {
+    if (entry.response_delay_seconds && entry.response_followup && entry.triggers_unlock) {
+      delayedFollowup = {
+        delaySeconds: entry.response_delay_seconds,
+        followupMessage: entry.response_followup,
+        unlockOnComplete: entry.triggers_unlock,
+      };
+    } else if (entry.triggers_unlock) {
       const unlockResult = this.stateMachine.tryUnlock(entry.triggers_unlock, '');
       if (unlockResult.success) {
         triggeredUnlock = entry.triggers_unlock;
       }
     }
 
-    return { messages, triggeredUnlock };
+    return { messages, triggeredUnlock, delayedFollowup };
+  }
+
+  private parseContextCheckKeywords(contextCheck: string): string[] {
+    const match = contextCheck.match(/['']([^'']+)['']/);
+    if (match) {
+      return match[1].split('|').map((s) => s.trim()).filter(Boolean);
+    }
+    return contextCheck.split('|').map((s) => s.trim()).filter(Boolean);
   }
 
   private createLuMessage(text: string): DialogMessage {

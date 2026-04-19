@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import type { LuMingyuanDialogData, DialogMessage } from '$lib/engine/types-v2';
+  import type { LuMingyuanDialogData, DialogMessage, DialogTurnResult } from '$lib/engine/types-v2';
   import { DialogEngine } from '$lib/engine/dialog';
   import { loadLuMingyuanDialog } from '$lib/data/loaders';
   import { getSharedStateMachine } from '$lib/state/state-machine-shared';
@@ -64,6 +64,17 @@
 
     if (result.pendingAction) {
       messages = [...messages, ...result.messages];
+    } else if (result.delayedFollowup) {
+      const delay = result.messages.length > 0 ? 800 : 0;
+      setTimeout(() => {
+        messages = [...messages, ...result.messages];
+      }, delay);
+
+      const { delaySeconds, followupMessage, unlockOnComplete } = result.delayedFollowup;
+      setTimeout(() => {
+        messages = [...messages, createLuMessage(followupMessage)];
+        handleUnlock(unlockOnComplete);
+      }, delay + delaySeconds * 1000);
     } else {
       const delay = result.messages.length > 0 ? 800 : 0;
       setTimeout(() => {
@@ -109,6 +120,11 @@
     const s = (seconds % 60).toString().padStart(2, '0');
     return `${m}:${s}`;
   }
+
+  function handleDragStart(e: DragEvent, text: string) {
+    e.dataTransfer?.setData('text/plain', text);
+    e.dataTransfer!.effectAllowed = 'copy';
+  }
 </script>
 
 <div class="phone-frame">
@@ -140,7 +156,17 @@
     <div class="chat-history">
       {#each messages as msg}
         <div class="msg {msg.speaker}">
-          <div class="msg-bubble">{msg.text}</div>
+          {#if msg.speaker === 'lu_mingyuan'}
+            <div
+              class="msg-bubble"
+              role="button"
+              tabindex="-1"
+              draggable="true"
+              ondragstart={(e) => handleDragStart(e, msg.text)}
+            >{msg.text}</div>
+          {:else}
+            <div class="msg-bubble">{msg.text}</div>
+          {/if}
         </div>
       {/each}
     </div>

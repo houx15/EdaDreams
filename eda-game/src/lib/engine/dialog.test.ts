@@ -53,6 +53,8 @@ const TEST_DIALOG: LuMingyuanDialogData = {
       player_must_justify: true,
       valid_justifications: ['陈芳的手机号', '刘哲通话记录里出现'],
       response_after_justification: '行，我帮你调。',
+      response_delay_seconds: 8,
+      response_followup: '189 的通信记录到了。',
       triggers_unlock: 'telecom_189',
     },
     {
@@ -62,6 +64,8 @@ const TEST_DIALOG: LuMingyuanDialogData = {
       response: '服务器登录记录？你是说那个 vps996 的服务器？',
       player_confirms: true,
       response_after_confirm: '好，我联系 vps996 那边调取。',
+      response_delay_seconds: 7,
+      response_followup: 'VPS 登录记录到了。',
       triggers_unlock: 'vps_records',
     },
     {
@@ -81,7 +85,39 @@ const TEST_DIALOG: LuMingyuanDialogData = {
       response: '你是说……刘哲可能不是真正在操作的人？',
       player_explains: true,
       response_after_explanation: '取证结果出来了。',
+      response_delay_seconds: 10,
+      response_followup: '取证结果出来了。',
       triggers_unlock: 'phone_forensics',
+    },
+    {
+      id: 'request_telecom_138',
+      match: ['138-2771-9403|13827719403'],
+      priority: 15,
+      context_check: "玩家是否同时提到了'通信|通话|记录|调取'",
+      response_if_context_yes: '好，138-2771-9403 的通信记录我帮你走运营商调取。稍等。',
+      response_if_context_no: '你要查这个号码什么？通话记录还是别的？',
+      response_delay_seconds: 6,
+      response_followup: '通信记录调到了。',
+      triggers_unlock: 'telecom_138',
+    },
+    {
+      id: 'request_resident_info',
+      match: ['雄楚大道|鹏程花园|4栋1703|住户'],
+      priority: 15,
+      prerequisite_check: 'phone_forensics',
+      prerequisite_not_met_response: '查住户？哪个地址？你怎么拿到的地址？',
+      prerequisite_met_response: '好，我联系武汉那边的同事帮忙查。',
+      response_delay_seconds: 12,
+      response_followup: '武汉那边回了。鹏程花园 4 栋 1703 的承租人叫林奕辰。',
+      triggers_unlock: 'resident_info',
+    },
+    {
+      id: 'ask_affected_list',
+      match: ['名单|受影响|受害者|客户列表'],
+      priority: 8,
+      prerequisite_check: 'bank_system',
+      prerequisite_not_met_response: '客户名单在银行系统里。你要不要先开通银行系统的权限？',
+      prerequisite_met_response: '名单在银行系统里，你登进去就能查到。',
     },
     {
       id: 'ask_progress',
@@ -123,11 +159,13 @@ describe('DialogEngine', () => {
     expect(result.pendingAction?.type).toBe('justify');
   });
 
-  it('completes justification with valid reason and unlocks', () => {
+  it('completes justification with valid reason and returns delayed followup', () => {
     engine.processMessage('帮我查 189-7654-3210');
     const result = engine.processMessage('这是陈芳的手机号');
     expect(result.messages[0].text).toBe('行，我帮你调。');
-    expect(result.triggeredUnlock).toBe('telecom_189');
+    expect(result.delayedFollowup).toBeDefined();
+    expect(result.delayedFollowup?.unlockOnComplete).toBe('telecom_189');
+    expect(result.triggeredUnlock).toBeUndefined();
     expect(result.pendingAction).toBeUndefined();
   });
 
@@ -144,11 +182,13 @@ describe('DialogEngine', () => {
     expect(result.pendingAction?.type).toBe('confirm');
   });
 
-  it('completes confirmation with positive response and unlocks', () => {
+  it('completes confirmation with positive response and returns delayed followup', () => {
     engine.processMessage('帮我调 vps996 服务器记录');
     const result = engine.processMessage('是的');
     expect(result.messages[0].text).toBe('好，我联系 vps996 那边调取。');
-    expect(result.triggeredUnlock).toBe('vps_records');
+    expect(result.delayedFollowup).toBeDefined();
+    expect(result.delayedFollowup?.unlockOnComplete).toBe('vps_records');
+    expect(result.triggeredUnlock).toBeUndefined();
   });
 
   it('rejects phone forensics without VPS evidence', () => {
@@ -165,6 +205,95 @@ describe('DialogEngine', () => {
 
     const result2 = engine.processMessage('对，武汉IP操作了38小时');
     expect(result2.messages[0].text).toBe('取证结果出来了。');
-    expect(result2.triggeredUnlock).toBe('phone_forensics');
+    expect(result2.delayedFollowup).toBeDefined();
+    expect(result2.delayedFollowup?.unlockOnComplete).toBe('phone_forensics');
+    expect(result2.triggeredUnlock).toBeUndefined();
+  });
+
+  it('returns two-stage reply for request_email_info', () => {
+    const result = engine.processMessage('帮我查 lz_tech@163 邮箱');
+    expect(result.messages[0].text).toBe('好，我帮你向网易那边提交调取申请。稍等一下。');
+    expect(result.delayedFollowup).toBeDefined();
+    expect(result.delayedFollowup?.delaySeconds).toBe(5);
+    expect(result.delayedFollowup?.unlockOnComplete).toBe('email_account');
+    expect(result.triggeredUnlock).toBeUndefined();
+  });
+
+  it('returns context check YES with delayed followup for 138 with keywords', () => {
+    const result = engine.processMessage('帮我调取 138-2771-9403 通信记录');
+    expect(result.messages[0].text).toContain('帮你走运营商调取');
+    expect(result.delayedFollowup).toBeDefined();
+    expect(result.delayedFollowup?.delaySeconds).toBe(6);
+    expect(result.delayedFollowup?.unlockOnComplete).toBe('telecom_138');
+    expect(result.triggeredUnlock).toBeUndefined();
+  });
+
+  it('returns context check NO for 138 without keywords', () => {
+    const result = engine.processMessage('138-2771-9403');
+    expect(result.messages[0].text).toContain('你要查这个号码什么');
+    expect(result.delayedFollowup).toBeUndefined();
+    expect(result.triggeredUnlock).toBeUndefined();
+  });
+
+  it('returns prerequisite met response with delayed followup for resident info', () => {
+    stateMachine.tryUnlock('vps_records', '');
+    stateMachine.tryUnlock('phone_forensics', '');
+    const result = engine.processMessage('查鹏程花园4栋1703住户');
+    expect(result.messages[0].text).toContain('武汉那边');
+    expect(result.delayedFollowup).toBeDefined();
+    expect(result.delayedFollowup?.delaySeconds).toBe(12);
+    expect(result.delayedFollowup?.unlockOnComplete).toBe('resident_info');
+    expect(result.triggeredUnlock).toBeUndefined();
+  });
+
+  it('returns prerequisite not met response for resident info', () => {
+    const result = engine.processMessage('查鹏程花园住户');
+    expect(result.messages[0].text).toContain('哪个地址');
+    expect(result.delayedFollowup).toBeUndefined();
+    expect(result.triggeredUnlock).toBeUndefined();
+  });
+
+  it('returns delayed followup after justification for 189', () => {
+    engine.processMessage('帮我查 189-7654-3210');
+    const result = engine.processMessage('这是陈芳的手机号');
+    expect(result.messages[0].text).toBe('行，我帮你调。');
+    expect(result.delayedFollowup).toBeDefined();
+    expect(result.delayedFollowup?.delaySeconds).toBe(8);
+    expect(result.delayedFollowup?.unlockOnComplete).toBe('telecom_189');
+    expect(result.triggeredUnlock).toBeUndefined();
+  });
+
+  it('returns delayed followup after confirmation for VPS', () => {
+    engine.processMessage('帮我调 vps996 服务器记录');
+    const result = engine.processMessage('是的');
+    expect(result.messages[0].text).toBe('好，我联系 vps996 那边调取。');
+    expect(result.delayedFollowup).toBeDefined();
+    expect(result.delayedFollowup?.delaySeconds).toBe(7);
+    expect(result.delayedFollowup?.unlockOnComplete).toBe('vps_records');
+    expect(result.triggeredUnlock).toBeUndefined();
+  });
+
+  it('returns prerequisite met response for ask_affected_list', () => {
+    stateMachine.tryUnlock('bank_system', '');
+    const result = engine.processMessage('给我客户名单');
+    expect(result.messages[0].text).toContain('名单在银行系统里');
+  });
+
+  it('returns prerequisite not met response for ask_affected_list', () => {
+    const result = engine.processMessage('给我客户名单');
+    expect(result.messages[0].text).toContain('先开通银行系统的权限');
+  });
+
+  it('returns delayed followup after explanation for phone forensics', () => {
+    stateMachine.tryUnlock('vps_records', '');
+    const result1 = engine.processMessage('我要申请手机取证，深圳只登了8分钟');
+    expect(result1.pendingAction?.type).toBe('explain');
+
+    const result2 = engine.processMessage('对，武汉IP操作了38小时');
+    expect(result2.messages[0].text).toBe('取证结果出来了。');
+    expect(result2.delayedFollowup).toBeDefined();
+    expect(result2.delayedFollowup?.delaySeconds).toBe(10);
+    expect(result2.delayedFollowup?.unlockOnComplete).toBe('phone_forensics');
+    expect(result2.triggeredUnlock).toBeUndefined();
   });
 });

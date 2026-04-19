@@ -182,6 +182,7 @@ export interface DialogEntry {
   prerequisite?: string | null;
   prerequisite_check?: string;
   prerequisite_not_met_response?: string;
+  prerequisite_met_response?: string;
   prerequisite_met?: boolean;
   additional_match?: string[];
   response?: string;
@@ -216,6 +217,25 @@ export interface LuMingyuanDialogData {
     personality: string;
   };
   dialogs: DialogEntry[];
+}
+
+export type PendingActionType = 'justify' | 'confirm' | 'explain';
+
+export interface PendingAction {
+  type: PendingActionType;
+  dialogId: string;
+}
+
+export interface DialogTurnResult {
+  messages: DialogMessage[];
+  triggeredUnlock?: string;
+  pendingAction?: PendingAction;
+  isEnded?: boolean;
+  delayedFollowup?: {
+    delaySeconds: number;
+    followupMessage: string;
+    unlockOnComplete: string;
+  };
 }
 
 export interface HintConfig {
