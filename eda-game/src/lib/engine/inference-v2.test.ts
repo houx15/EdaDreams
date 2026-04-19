@@ -162,14 +162,14 @@ describe('runInferenceV2', () => {
 
   it('falls back to empty context when no stage matches well', () => {
     const result = runInferenceV2(TEST_DATA, {
-      contextTexts: ['林奕辰是嫌疑人', '刘哲被招募', '陈芳取现'],
+      contextTexts: [' completely unrelated text'],
       previousAttemptCount: 0,
       didContextChange: true,
     });
     expect(result.stageId).toBe('stage_0_empty');
   });
 
-  it('generates incomplete report at stage_final with exactly min_required keywords', () => {
+  it('generates complete final report at stage_final with exactly min_required keywords', () => {
     const result = runInferenceV2(TEST_DATA, {
       contextTexts: ['林奕辰是嫌疑人', '刘哲被招募', '陈芳取现', '钓鱼域名 donghai-verify.cn'],
       previousAttemptCount: 0,
@@ -178,6 +178,51 @@ describe('runInferenceV2', () => {
     expect(result.stageId).toBe('stage_final');
     expect(result.triggersCaseClose).toBe(true);
     expect(result.output).toBe('完整五章最终分析报告');
+  });
+
+  it('generates complete final report when all 5 keyword groups match', () => {
+    const result = runInferenceV2(TEST_DATA, {
+      contextTexts: ['林奕辰是嫌疑人', '刘哲被招募', '陈芳取现', '钓鱼域名 donghai-verify.cn', 'AutoAI 远程控制'],
+      previousAttemptCount: 0,
+      didContextChange: true,
+    });
+    expect(result.stageId).toBe('stage_final');
+    expect(result.triggersCaseClose).toBe(true);
+    expect(result.output).toBe('完整五章最终分析报告');
+  });
+
+  it('generates incomplete report at stage_final with 3 keyword groups', () => {
+    const result = runInferenceV2(TEST_DATA, {
+      contextTexts: ['林奕辰是嫌疑人', '刘哲被招募', '陈芳取现'],
+      previousAttemptCount: 0,
+      didContextChange: true,
+    });
+    expect(result.stageId).toBe('stage_final');
+    expect(result.triggersCaseClose).toBe(false);
+    expect(result.output).toContain('[信息不足]');
+    expect(result.outputFile).toBeUndefined();
+  });
+
+  it('generates incomplete report at stage_final with 1 keyword group', () => {
+    const result = runInferenceV2(TEST_DATA, {
+      contextTexts: ['林奕辰'],
+      previousAttemptCount: 0,
+      didContextChange: true,
+    });
+    expect(result.stageId).toBe('stage_final');
+    expect(result.triggersCaseClose).toBe(false);
+    expect(result.output).toContain('[信息不足]');
+    expect(result.output).toContain('最终分析报告（不完整）');
+    expect(result.outputFile).toBeUndefined();
+  });
+
+  it('does not match stage_final when 0 keyword groups match', () => {
+    const result = runInferenceV2(TEST_DATA, {
+      contextTexts: ['random unrelated content'],
+      previousAttemptCount: 0,
+      didContextChange: true,
+    });
+    expect(result.stageId).toBe('stage_0_empty');
   });
 
   it('given noise words in context, when running inference, then output contains dilution note', () => {
